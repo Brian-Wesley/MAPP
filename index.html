@@ -43,6 +43,23 @@
         font-weight: 400;
         line-height: 1.5;
       }
+      .code-button {
+        display: inline-block;
+        margin-top: 24px;
+        padding: 10px 24px;
+        border-radius: 8px;
+        background: #237c83;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.5;
+        text-decoration: none;
+      }
+      .code-button:hover { background: #1b6268; }
+      .code-button:focus-visible {
+        outline: 3px solid #172a3a;
+        outline-offset: 4px;
+      }
       .status {
         margin: 40px 0 0;
         color: #526271;
@@ -56,6 +73,7 @@
     <main>
       <h1>MAPP</h1>
       <p class="title">A Multilingual Atlas of Pretraining and Post-training Data</p>
+      <a class="code-button" href="https://anonymous.4open.science/r/low_resource_languages_data_review-CE42/" target="_blank" rel="noopener noreferrer">Code</a>
       <p class="status">Website under development. More information coming soon.</p>
     </main>
   </body>
