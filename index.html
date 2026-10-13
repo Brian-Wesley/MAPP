@@ -91,10 +91,51 @@
         text-decoration: none;
       }
       .figure-download:hover { background: #edf5f5; }
+      .table-scroll {
+        max-width: 100%;
+        overflow-x: auto;
+        border: 1px solid #dce5eb;
+        border-radius: 10px;
+      }
+      .table-scroll:focus-visible { outline: 3px solid #237c83; outline-offset: 4px; }
+      .research-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.5;
+      }
+      .research-table th, .research-table td {
+        padding: 12px 10px;
+        border-bottom: 1px solid #e3eaf0;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .research-table thead th { background: #edf5f5; color: #253e4e; }
+      .research-table tbody th { font-weight: 600; }
+      .research-table .stage { text-align: left; background: #f8fafc; vertical-align: middle; }
+      .research-table tbody tr:nth-child(even) td { background: #f8fafc; }
+      .research-table .group-start th, .research-table .group-start td { border-top: 2px solid #c5d4dd; }
+      .research-table tfoot th, .research-table tfoot td { border-top: 2px solid #c5d4dd; border-bottom: 0; font-weight: 700; background: #edf5f5; }
+      .cluster-table { min-width: 1100px; }
+      .cross-stage-table { min-width: 580px; }
+      .cross-stage-table thead tr:first-child th { text-align: center; }
+      .cross-stage-table .row-heading { text-align: left; }
+      .research-table abbr { text-decoration: none; }
+      .table-notes { margin: 16px 0 0; color: #526271; font-size: 0.875rem; line-height: 1.7; }
+      .table-hint { display: none; }
+      .regime-legend { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 16px; }
+      .regime-tag { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
+      .expand { color: #a32343; background: #fff0f3; }
+      .bootstrap { color: #155f9e; background: #edf5ff; }
+      .scale { color: #356d27; background: #eef7e9; }
+      .diversify { color: #794838; background: #f8efeb; }
+      .refine { color: #995000; background: #fff4e5; }
       @media (max-width: 600px) {
         body { padding: 32px 16px; }
         .figures { margin-top: 40px; }
         .figure-card { padding: 20px 16px; border-radius: 12px; }
+        .table-hint { display: block; margin: 0 0 12px; color: #526271; font-size: 0.85rem; }
       }
     </style>
   </head>
@@ -103,13 +144,105 @@
       <h1>MAPP</h1>
       <p class="title">A Multilingual Atlas of Pretraining and Post-training Data</p>
       <a class="code-button" href="https://anonymous.4open.science/r/low_resource_languages_data_review-CE42/" target="_blank" rel="noopener noreferrer">Code</a>
-      <section class="figures" aria-label="Research figures">
+      <section class="figures" aria-label="Research figures and tables">
+        <figure class="figure-card" aria-labelledby="cluster-table-title">
+          <h2 id="cluster-table-title">Coverage, Provenance, and Inequality Within Resource Clusters</h2>
+          <p class="table-hint">Scroll horizontally to view all columns.</p>
+          <div class="table-scroll" role="region" tabindex="0" aria-label="Resource cluster profiles table, horizontally scrollable">
+            <table class="research-table cluster-table" aria-labelledby="cluster-table-title" aria-describedby="cluster-table-notes">
+              <thead>
+                <tr>
+                  <th scope="col" class="stage">Training stage</th>
+                  <th scope="col">Cluster</th>
+                  <th scope="col"><var>N</var></th>
+                  <th scope="col"><var>Q</var><sub>median</sub></th>
+                  <th scope="col"><var>Q</var><sub>mean</sub></th>
+                  <th scope="col"><abbr title="Expert-Created">E (%)</abbr></th>
+                  <th scope="col"><abbr title="Human-Created">H (%)</abbr></th>
+                  <th scope="col"><abbr title="Collected-Existed">C (%)</abbr></th>
+                  <th scope="col"><abbr title="Human-Audited">A (%)</abbr></th>
+                  <th scope="col"><abbr title="Machine-Generated">M (%)</abbr></th>
+                  <th scope="col">Collections per language</th>
+                  <th scope="col">Gini coefficient</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="rowgroup" rowspan="4" class="stage">Pre-training</th>
+                  <th scope="row">-1</th><td>4,912</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td>
+                </tr>
+                <tr>
+                  <th scope="row">0</th><td>237</td><td>8.17 &times; 10<sup>3</sup></td><td>2.76 &times; 10<sup>5</sup></td><td>1.20</td><td>5.78</td><td>86.10</td><td>0.00</td><td>6.92</td><td>2.29 &plusmn; 1.15</td><td>0.86</td>
+                </tr>
+                <tr>
+                  <th scope="row">1</th><td>1,433</td><td>5.96 &times; 10<sup>6</sup></td><td>9.13 &times; 10<sup>6</sup></td><td>51.29</td><td>1.24</td><td>46.88</td><td>0.00</td><td>0.59</td><td>4.51 &plusmn; 1.39</td><td>0.53</td>
+                </tr>
+                <tr>
+                  <th scope="row">2</th><td>502</td><td>3.52 &times; 10<sup>8</sup></td><td>1.29 &times; 10<sup>12</sup></td><td>2.46</td><td>10.77</td><td>78.73</td><td>0.00</td><td>8.04</td><td>10.76 &plusmn; 4.78</td><td>0.99</td>
+                </tr>
+              </tbody>
+              <tbody>
+                <tr class="group-start">
+                  <th scope="rowgroup" rowspan="4" class="stage">Post-training</th>
+                  <th scope="row">-1</th><td>6,560</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td>
+                </tr>
+                <tr>
+                  <th scope="row">0</th><td>296</td><td>372</td><td>5.08 &times; 10<sup>3</sup></td><td>0.05</td><td>0.99</td><td>0.00</td><td>0.05</td><td>98.91</td><td>1.01 &plusmn; 0.10</td><td>0.83</td>
+                </tr>
+                <tr>
+                  <th scope="row">1</th><td>142</td><td>1.24 &times; 10<sup>6</sup></td><td>1.54 &times; 10<sup>6</sup></td><td>84.24</td><td>6.70</td><td>0.74</td><td>3.07</td><td>5.25</td><td>2.30 &plusmn; 2.30</td><td>0.35</td>
+                </tr>
+                <tr>
+                  <th scope="row">2</th><td>86</td><td>7.25 &times; 10<sup>6</sup></td><td>2.48 &times; 10<sup>7</sup></td><td>20.21</td><td>1.99</td><td>1.41</td><td>0.42</td><td>75.97</td><td>7.19 &plusmn; 15.54</td><td>0.61</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <figcaption>
+            <p class="table-notes" id="cluster-table-notes"><var>N</var> counts living languages in a reference inventory of 7,084. <var>Q</var> measures pre-training volume in Normalized Character Count (NCC) and post-training volume in response-level sample equivalents. E: Expert-Created; H: Human-Created; C: Collected-Existed; A: Human-Audited; M: Machine-Generated. The Gini coefficient summarizes inequality in resource quantity within each cluster. Cluster -1 denotes no usable observed quantity in the surveyed inventory and is excluded from clustering; dashes indicate unavailable statistics.</p>
+            <p class="figure-description">These profiles establish the quantitative basis for comparing the two training stages. Usable pre-training resources cover 2,172 living languages, but post-training coverage reaches only 524. Quantity and provenance reveal distinct constraints: post-training Cluster 0 has a median of just 372 response-level sample equivalents and a 98.91% machine-generated share, while Cluster 1's 84.24% expert-created share largely reflects reused FLORES translations in xP3x. Large pre-training corpora also remain highly unequal, with a Gini coefficient of 0.99 in Cluster 2. Together, resource quantities, source percentages, and collection counts show why apparent coverage or large totals alone cannot establish broad, independently sourced supervision. The following figure visualizes these differences in distributions, provenance, and task composition.</p>
+          </figcaption>
+        </figure>
+
         <figure class="figure-card" aria-labelledby="clusters-title">
           <h2 id="clusters-title">Training Resources Differ in Both Quantity and Provenance</h2>
           <img class="figure-preview" src="assets/combined_cluster_profiles.png" width="2740" height="1194" alt="Three clusters per training stage, showing data quantity distributions and the source and task composition of each cluster." loading="lazy">
           <figcaption>
             <p class="figure-description">Across 36 pre-training and 188 post-training collections, the survey records usable resources for 2,172 and 524 living languages, respectively, out of a reference inventory of 7,084. Pre-training quantity is measured in Normalized Character Count (NCC), while post-training quantity counts response-level sample equivalents. Languages with observed resources are clustered separately within each stage using quantity and source composition; task distributions help interpret the resulting profiles. Intermediate pre-training profiles often rely on language-identification corpora, while post-training is translation-centered, ranging from small synthetic slices to reused expert translations and larger synthetic-heavy mixtures. Large totals or high expert-created shares can therefore conceal narrow supervision and dependence on shared source material. Provenance categories describe construction processes and do not directly measure data quality; post-training source and task proportions in this figure are power-transformed.</p>
             <a class="figure-download" href="assets/combined_cluster_profiles.pdf" download aria-label="Download training resource quantity and provenance figure">Download figure</a>
+          </figcaption>
+        </figure>
+
+        <figure class="figure-card" aria-labelledby="cross-stage-table-title">
+          <h2 id="cross-stage-table-title">How Languages Map Between Training Stages</h2>
+          <p class="table-hint">Scroll horizontally to view all columns.</p>
+          <div class="table-scroll" role="region" tabindex="0" aria-label="Cross-stage language counts table, horizontally scrollable">
+            <table class="research-table cross-stage-table" aria-labelledby="cross-stage-table-title" aria-describedby="cross-stage-table-notes">
+              <thead>
+                <tr><th></th><th scope="colgroup" colspan="4">Post-training cluster</th><th></th></tr>
+                <tr><th scope="col" class="row-heading">Pre-training cluster</th><th scope="col">-1</th><th scope="col">0</th><th scope="col">1</th><th scope="col">2</th><th scope="col">Total</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row" class="row-heading">-1</th><td>4,912</td><td>0</td><td>0</td><td>0</td><td>4,912</td></tr>
+                <tr><th scope="row" class="row-heading">0</th><td><span class="regime-tag expand" aria-label="215 languages: Expand Pre-training">215</span></td><td><span class="regime-tag expand" aria-label="22 languages: Expand Pre-training">22</span></td><td>0</td><td>0</td><td>237</td></tr>
+                <tr><th scope="row" class="row-heading">1</th><td><span class="regime-tag bootstrap" aria-label="1,285 languages: Bootstrap Post-training">1,285</span></td><td><span class="regime-tag scale" aria-label="148 languages: Scale Up Post-training">148</span></td><td>0</td><td>0</td><td>1,433</td></tr>
+                <tr><th scope="row" class="row-heading">2</th><td><span class="regime-tag bootstrap" aria-label="148 languages: Bootstrap Post-training">148</span></td><td><span class="regime-tag scale" aria-label="126 languages: Scale Up Post-training">126</span></td><td><span class="regime-tag diversify" aria-label="142 languages: Diversify Post-training">142</span></td><td><span class="regime-tag refine" aria-label="86 languages: Refine Both Stages">86</span></td><td>502</td></tr>
+              </tbody>
+              <tfoot>
+                <tr><th scope="row" class="row-heading">Total</th><td>6,560</td><td>296</td><td>142</td><td>86</td><td>7,084</td></tr>
+              </tfoot>
+            </table>
+          </div>
+          <figcaption>
+            <p class="table-notes" id="cross-stage-table-notes">Cells count living languages at the intersection of pre-training (rows) and post-training (columns) clusters, with three fitted clusters per stage (<var>K</var> = 3). Cluster -1 denotes no usable observed quantity. Cluster IDs are defined separately for each training stage. Highlighted cells correspond to the five development regimes below.</p>
+            <div class="regime-legend" aria-label="Development regime legend">
+              <span class="regime-tag expand">Expand Pre-training</span>
+              <span class="regime-tag bootstrap">Bootstrap Post-training</span>
+              <span class="regime-tag scale">Scale Up Post-training</span>
+              <span class="regime-tag diversify">Diversify Post-training</span>
+              <span class="regime-tag refine">Refine Both Stages</span>
+            </div>
+            <p class="figure-description">Linking the stage-specific profiles exposes gaps that separate coverage statistics cannot show. Of the 7,084 living languages in the reference inventory, 4,912 have no usable observed quantity at either stage. Among the 2,172 with pre-training resources, 1,433 have intermediate or large pre-training foundations but no usable post-training quantity, and another 274 have only small post-training resources. Even within the 502 languages in the largest pre-training cluster, post-training support ranges from absent to comparatively extensive. These intersections motivate different interventions: establishing pre-training foundations, creating initial supervision, expanding limited supervision, diversifying reused translation resources, or refining both stages. The next figure places the five regimes in the language-level resource landscape.</p>
           </figcaption>
         </figure>
 
