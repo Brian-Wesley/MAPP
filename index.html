@@ -45,7 +45,7 @@
         text-decoration: none;
       }
       .code-button:hover { background: #1b6268; }
-      a:focus-visible {
+      a:focus-visible, button:focus-visible {
         outline: 3px solid #172a3a;
         outline-offset: 4px;
       }
@@ -124,11 +124,69 @@
       .scale { color: #356d27; background: #eef7e9; }
       .diversify { color: #794838; background: #f8efeb; }
       .refine { color: #995000; background: #fff4e5; }
+      .group-browser { margin: 24px 0; }
+      .browse-label { margin: 0 0 12px; font-weight: 600; }
+      .browse-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+      .browse-tab {
+        padding: 10px 16px;
+        border: 1px solid #c5d4dd;
+        border-radius: 8px;
+        background: #fff;
+        color: #334b5c;
+        font: inherit;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+      .browse-tab:hover { background: #edf5f5; }
+      .browse-tab[aria-selected="true"] { background: #237c83; border-color: #237c83; color: #fff; }
+      .browse-panel[hidden] { display: none; }
+      .group-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+      .resource-card {
+        --group-color: #237c83;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        border: 1px solid #dce5eb;
+        border-top: 3px solid var(--group-color);
+        border-radius: 10px;
+        background: #fff;
+        min-width: 0;
+      }
+      .resource-card[data-tone="expand"] { --group-color: #a32343; }
+      .resource-card[data-tone="bootstrap"] { --group-color: #155f9e; }
+      .resource-card[data-tone="scale"] { --group-color: #356d27; }
+      .resource-card[data-tone="diversify"] { --group-color: #794838; }
+      .resource-card[data-tone="refine"] { --group-color: #995000; }
+      .resource-card[data-tone="unavailable"] { --group-color: #7b8791; background: #f8fafc; }
+      .resource-card h3 { margin: 0 0 12px; color: var(--group-color); font-size: 1.05rem; line-height: 1.4; }
+      .group-count { margin: 0 0 12px; color: #526271; font-size: 0.875rem; }
+      .group-count strong { color: #172a3a; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+      .group-description { margin: 0; color: #526271; font-size: 0.9rem; line-height: 1.6; }
+      .group-examples { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 20px; padding: 0; list-style: none; }
+      .group-examples li { padding: 4px 8px; border-radius: 5px; background: #edf2f6; color: #334b5c; font-size: 0.8rem; line-height: 1.4; }
+      .view-languages {
+        align-self: flex-start;
+        margin-top: auto;
+        padding: 8px 12px;
+        border: 1px solid #dce5eb;
+        border-radius: 6px;
+        background: #f3f6f8;
+        color: #677683;
+        font: inherit;
+        font-size: 0.875rem;
+        cursor: not-allowed;
+      }
+      .unavailable-group { margin-top: 20px; padding-top: 20px; border-top: 1px dashed #c5d4dd; }
+      @media (max-width: 900px) {
+        .group-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
       @media (max-width: 600px) {
         body { padding: 32px 16px; }
         .figures { margin-top: 40px; }
         .figure-card { padding: 20px 16px; border-radius: 12px; }
         .table-hint { display: block; margin: 0 0 12px; color: #526271; font-size: 0.85rem; }
+        .group-grid { grid-template-columns: 1fr; }
+        .browse-tab { flex: 1 1 100%; text-align: left; }
       }
     </style>
   </head>
@@ -142,6 +200,18 @@
           <img class="figure-preview" src="assets/language_resource_profiles.png" width="2400" height="1190" alt="Pre-training and post-training quantities for 2,172 living languages, colored by five development priorities, with a separate band for languages without observed usable post-training data." loading="lazy">
           <figcaption>
             <h2 id="profiles-title">Five Priorities for Developing Language Resources</h2>
+            <div class="group-browser" id="language-browser">
+              <p class="browse-label" id="browse-label">Browse by:</p>
+              <div class="browse-tabs" role="tablist" aria-labelledby="browse-label">
+                <button class="browse-tab" type="button" id="tab-regime" role="tab" aria-selected="true" aria-controls="panel-regime" tabindex="0">Development regime</button>
+                <button class="browse-tab" type="button" id="tab-pretrain" role="tab" aria-selected="false" aria-controls="panel-pretrain" tabindex="-1">Pre-training cluster</button>
+                <button class="browse-tab" type="button" id="tab-posttrain" role="tab" aria-selected="false" aria-controls="panel-posttrain" tabindex="-1">Post-training cluster</button>
+              </div>
+              <div class="browse-panel" id="panel-regime" role="tabpanel" aria-labelledby="tab-regime" tabindex="0"></div>
+              <div class="browse-panel" id="panel-pretrain" role="tabpanel" aria-labelledby="tab-pretrain" tabindex="0" hidden></div>
+              <div class="browse-panel" id="panel-posttrain" role="tabpanel" aria-labelledby="tab-posttrain" tabindex="0" hidden></div>
+              <noscript><p class="table-notes">Enable JavaScript to browse language groups.</p></noscript>
+            </div>
             <p class="figure-description">Matching the stage-specific clusters reveals that a pre-training foundation does not guarantee task-oriented supervision. Among the 2,172 plotted languages, 1,433 have intermediate or large pre-training resources but no observed usable post-training quantity, and 274 have only small post-training resources despite stronger pre-training foundations. These gaps motivate five development regimes: <strong>Expand Pre-training</strong> through quality-controlled corpus collection; <strong>Bootstrap Post-training</strong> by building initial instruction and task datasets; <strong>Scale Up Post-training</strong> beyond small, predominantly synthetic translation slices; <strong>Diversify Post-training</strong> with independently sourced supervision across tasks; and <strong>Refine Both Stages</strong> through provenance auditing, balanced task coverage, and targeted gap filling. The 142 languages in the diversification regime illustrate why substantial example counts from reused translations still leave limited supervision breadth. Together, the regimes guide resource development toward each language's specific bottleneck, with continued human contributions alongside synthetic expansion.</p>
             <a class="figure-download" href="assets/language_resource_profiles.pdf" download aria-label="Download five language resource development priorities figure">Download figure</a>
           </figcaption>
@@ -258,5 +328,6 @@
         </figure>
       </section>
     </main>
+    <script src="assets/language-browser.js" defer></script>
   </body>
 </html>
