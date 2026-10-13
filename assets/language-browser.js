@@ -27,6 +27,11 @@ const languageGroups = {
       description: 'Large resources at both stages benefit from provenance auditing, balanced tasks, and targeted gap filling.',
       examples: [{ code: 'eng', name: 'English' }, { code: 'deu', name: 'German' }, { code: 'fra', name: 'French' }, { code: 'hrv', name: 'Croatian' }],
     },
+    {
+      name: 'No pre-training yet', count: 4912, tone: 'unavailable',
+      description: 'No usable resources are recorded at either training stage in the surveyed inventory.',
+      examples: [{ code: 'hru', name: 'Hruso' }, { code: 'oon', name: 'Önge' }, { code: 'anq', name: 'Jarawa (India)' }],
+    },
   ],
   pretrain: [
     {
