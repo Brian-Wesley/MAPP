@@ -78,52 +78,19 @@
         font-size: 1rem;
         line-height: 1.7;
       }
-      .figure-viewer { position: relative; }
-      .format-choice {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        overflow: hidden;
-        clip-path: inset(50%);
-      }
-      .format-label {
+      .figure-preview { display: block; width: 100%; height: auto; }
+      .figure-download {
         display: inline-block;
-        margin: 0 6px 20px 0;
+        margin-top: 20px;
         padding: 8px 16px;
         border: 1px solid #c5d4dd;
         border-radius: 8px;
-        color: #334b5c;
+        color: #1b6268;
         font-size: 0.9rem;
         font-weight: 600;
-        cursor: pointer;
+        text-decoration: none;
       }
-      .format-label:hover { background: #edf5f5; }
-      .format-choice:checked + .format-label {
-        border-color: #237c83;
-        background: #237c83;
-        color: #fff;
-      }
-      .format-choice:focus-visible + .format-label {
-        outline: 3px solid #172a3a;
-        outline-offset: 4px;
-      }
-      .figure-preview { display: block; }
-      .figure-preview img { display: block; width: 100%; height: auto; }
-      .figure-preview:focus-visible { outline-offset: 6px; }
-      .pdf-view { display: none; }
-      .format-choice[value="pdf"]:checked ~ .svg-view { display: none; }
-      .format-choice[value="pdf"]:checked ~ .pdf-view { display: block; }
-      .pdf-view iframe {
-        display: block;
-        width: 100%;
-        height: clamp(450px, 70vw, 720px);
-        border: 1px solid #dce5eb;
-        border-radius: 8px;
-        background: #f8fafc;
-      }
-      .figure-actions { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-top: 20px; }
-      .figure-actions a { color: #1b6268; font-size: 0.95rem; text-underline-offset: 3px; }
+      .figure-download:hover { background: #edf5f5; }
       @media (max-width: 600px) {
         body { padding: 32px 16px; }
         .figures { margin-top: 40px; }
@@ -142,28 +109,8 @@
             <h2 id="profiles-title">Language Resource Profiles</h2>
             <p class="figure-description">A comparison of pre-training and post-training data quantities for 2,172 living languages with pre-training corpora. The plot highlights languages with no observed usable post-training datasets and groups languages into five development regimes, from expanding pre-training resources to refining both stages.</p>
           </figcaption>
-          <div class="figure-viewer" role="group" aria-label="Language resource profiles format">
-            <input class="format-choice" type="radio" name="profiles-format" id="profiles-svg" value="svg" checked>
-            <label class="format-label" for="profiles-svg">SVG</label>
-            <input class="format-choice" type="radio" name="profiles-format" id="profiles-pdf" value="pdf">
-            <label class="format-label" for="profiles-pdf">PDF</label>
-            <div class="svg-view">
-              <a class="figure-preview" href="assets/language_resource_profiles.svg" target="_blank" rel="noopener noreferrer" aria-label="Open language resource profiles SVG at full size">
-                <img src="assets/language_resource_profiles.svg" width="1130" height="560" alt="Scatter plot of pre-training and post-training data quantities, colored by five language development regimes, with a separate band for languages without usable post-training data." loading="lazy">
-              </a>
-              <div class="figure-actions">
-                <a href="assets/language_resource_profiles.svg" target="_blank" rel="noopener noreferrer">View full-size SVG</a>
-                <a href="assets/language_resource_profiles.svg" download>Download SVG</a>
-              </div>
-            </div>
-            <div class="pdf-view">
-              <iframe src="assets/language_resource_profiles.pdf#view=FitH" title="Language resource profiles PDF" loading="lazy"></iframe>
-              <div class="figure-actions">
-                <a href="assets/language_resource_profiles.pdf" target="_blank" rel="noopener noreferrer">Open PDF in a new tab</a>
-                <a href="assets/language_resource_profiles.pdf" download>Download PDF</a>
-              </div>
-            </div>
-          </div>
+          <img class="figure-preview" src="assets/language_resource_profiles.png" width="2400" height="1190" alt="Scatter plot of pre-training and post-training data quantities, colored by five language development regimes, with a separate band for languages without usable post-training data." loading="lazy">
+          <a class="figure-download" href="assets/language_resource_profiles.pdf" download aria-label="Download language resource profiles">Download figure</a>
         </figure>
 
         <figure class="figure-card" aria-labelledby="gaps-title">
@@ -171,28 +118,8 @@
             <h2 id="gaps-title">Cross-stage Resource Gaps</h2>
             <p class="figure-description">Pre-training and post-training resource shares compared with reference shares across regions, speaker population groups, language families, and word orders. The panels show how representation changes between stages, with differences reported in percentage points.</p>
           </figcaption>
-          <div class="figure-viewer" role="group" aria-label="Cross-stage resource gaps format">
-            <input class="format-choice" type="radio" name="gaps-format" id="gaps-svg" value="svg" checked>
-            <label class="format-label" for="gaps-svg">SVG</label>
-            <input class="format-choice" type="radio" name="gaps-format" id="gaps-pdf" value="pdf">
-            <label class="format-label" for="gaps-pdf">PDF</label>
-            <div class="svg-view">
-              <a class="figure-preview" href="assets/cross_stage_resource_gaps.svg" target="_blank" rel="noopener noreferrer" aria-label="Open cross-stage resource gaps SVG at full size">
-                <img src="assets/cross_stage_resource_gaps.svg" width="496" height="468" alt="Four panels comparing reference, pre-training, and post-training shares by region, speaker population, genealogical family, and word order." loading="lazy">
-              </a>
-              <div class="figure-actions">
-                <a href="assets/cross_stage_resource_gaps.svg" target="_blank" rel="noopener noreferrer">View full-size SVG</a>
-                <a href="assets/cross_stage_resource_gaps.svg" download>Download SVG</a>
-              </div>
-            </div>
-            <div class="pdf-view">
-              <iframe src="assets/cross_stage_resource_gaps.pdf#view=FitH" title="Cross-stage resource gaps PDF" loading="lazy"></iframe>
-              <div class="figure-actions">
-                <a href="assets/cross_stage_resource_gaps.pdf" target="_blank" rel="noopener noreferrer">Open PDF in a new tab</a>
-                <a href="assets/cross_stage_resource_gaps.pdf" download>Download PDF</a>
-              </div>
-            </div>
-          </div>
+          <img class="figure-preview" src="assets/cross_stage_resource_gaps.png" width="2200" height="2075" alt="Four panels comparing reference, pre-training, and post-training shares by region, speaker population, genealogical family, and word order." loading="lazy">
+          <a class="figure-download" href="assets/cross_stage_resource_gaps.pdf" download aria-label="Download cross-stage resource gaps">Download figure</a>
         </figure>
 
         <figure class="figure-card" aria-labelledby="clusters-title">
@@ -200,13 +127,8 @@
             <h2 id="clusters-title">Cluster Resource Profiles</h2>
             <p class="figure-description">Three language clusters within each training stage are compared by data quantity, source composition, and task composition. Boxplots summarize resource quantities, while stacked bars show how data sources and tasks differ across the clusters; post-training proportions are power-transformed.</p>
           </figcaption>
-          <a class="figure-preview" href="assets/combined_cluster_profiles.pdf" target="_blank" rel="noopener noreferrer" aria-label="Open cluster resource profiles PDF">
-            <img src="assets/combined_cluster_profiles.png" width="2740" height="1194" alt="Pre-training and post-training cluster comparisons, with boxplots of data quantities and stacked bars of source and task proportions." loading="lazy">
-          </a>
-          <div class="figure-actions">
-            <a href="assets/combined_cluster_profiles.pdf" target="_blank" rel="noopener noreferrer">View PDF</a>
-            <a href="assets/combined_cluster_profiles.pdf" download>Download PDF</a>
-          </div>
+          <img class="figure-preview" src="assets/combined_cluster_profiles.png" width="2740" height="1194" alt="Pre-training and post-training cluster comparisons, with boxplots of data quantities and stacked bars of source and task proportions." loading="lazy">
+          <a class="figure-download" href="assets/combined_cluster_profiles.pdf" download aria-label="Download cluster resource profiles">Download figure</a>
         </figure>
       </section>
     </main>
