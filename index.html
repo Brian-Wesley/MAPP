@@ -67,13 +67,13 @@
         background: #fff;
       }
       .figure-card h2 {
-        margin: 0 0 12px;
+        margin: 0 0 20px;
         font-size: clamp(1.25rem, 3vw, 1.6rem);
         line-height: 1.35;
       }
       .figure-description {
         max-width: 900px;
-        margin: 0 0 24px;
+        margin: 24px 0 0;
         color: #526271;
         font-size: 1rem;
         line-height: 1.7;
@@ -104,31 +104,31 @@
       <p class="title">A Multilingual Atlas of Pretraining and Post-training Data</p>
       <a class="code-button" href="https://anonymous.4open.science/r/low_resource_languages_data_review-CE42/" target="_blank" rel="noopener noreferrer">Code</a>
       <section class="figures" aria-label="Research figures">
-        <figure class="figure-card" aria-labelledby="profiles-title">
+        <figure class="figure-card" aria-labelledby="clusters-title">
+          <h2 id="clusters-title">Training Resources Differ in Both Quantity and Provenance</h2>
+          <img class="figure-preview" src="assets/combined_cluster_profiles.png" width="2740" height="1194" alt="Three clusters per training stage, showing data quantity distributions and the source and task composition of each cluster." loading="lazy">
           <figcaption>
-            <h2 id="profiles-title">Language Resource Profiles</h2>
-            <p class="figure-description">A comparison of pre-training and post-training data quantities for 2,172 living languages with pre-training corpora. The plot highlights languages with no observed usable post-training datasets and groups languages into five development regimes, from expanding pre-training resources to refining both stages.</p>
+            <p class="figure-description">Across 36 pre-training and 188 post-training collections, the survey records usable resources for 2,172 and 524 living languages, respectively, out of a reference inventory of 7,084. Pre-training quantity is measured in Normalized Character Count (NCC), while post-training quantity counts response-level sample equivalents. Languages with observed resources are clustered separately within each stage using quantity and source composition; task distributions help interpret the resulting profiles. Intermediate pre-training profiles often rely on language-identification corpora, while post-training is translation-centered, ranging from small synthetic slices to reused expert translations and larger synthetic-heavy mixtures. Large totals or high expert-created shares can therefore conceal narrow supervision and dependence on shared source material. Provenance categories describe construction processes and do not directly measure data quality; post-training source and task proportions in this figure are power-transformed.</p>
+            <a class="figure-download" href="assets/combined_cluster_profiles.pdf" download aria-label="Download training resource quantity and provenance figure">Download figure</a>
           </figcaption>
-          <img class="figure-preview" src="assets/language_resource_profiles.png" width="2400" height="1190" alt="Scatter plot of pre-training and post-training data quantities, colored by five language development regimes, with a separate band for languages without usable post-training data." loading="lazy">
-          <a class="figure-download" href="assets/language_resource_profiles.pdf" download aria-label="Download language resource profiles">Download figure</a>
+        </figure>
+
+        <figure class="figure-card" aria-labelledby="profiles-title">
+          <h2 id="profiles-title">Five Priorities for Developing Language Resources</h2>
+          <img class="figure-preview" src="assets/language_resource_profiles.png" width="2400" height="1190" alt="Pre-training and post-training quantities for 2,172 living languages, colored by five development priorities, with a separate band for languages without observed usable post-training data." loading="lazy">
+          <figcaption>
+            <p class="figure-description">Matching the stage-specific clusters reveals that a pre-training foundation does not guarantee task-oriented supervision. Among the 2,172 plotted languages, 1,433 have intermediate or large pre-training resources but no observed usable post-training quantity, and 274 have only small post-training resources despite stronger pre-training foundations. These gaps motivate five development regimes: <strong>Expand Pre-training</strong> through quality-controlled corpus collection; <strong>Bootstrap Post-training</strong> by building initial instruction and task datasets; <strong>Scale Up Post-training</strong> beyond small, predominantly synthetic translation slices; <strong>Diversify Post-training</strong> with independently sourced supervision across tasks; and <strong>Refine Both Stages</strong> through provenance auditing, balanced task coverage, and targeted gap filling. The 142 languages in the diversification regime illustrate why substantial example counts from reused translations still leave limited supervision breadth. Together, the regimes guide resource development toward each language's specific bottleneck, with continued human contributions alongside synthetic expansion.</p>
+            <a class="figure-download" href="assets/language_resource_profiles.pdf" download aria-label="Download five language resource development priorities figure">Download figure</a>
+          </figcaption>
         </figure>
 
         <figure class="figure-card" aria-labelledby="gaps-title">
+          <h2 id="gaps-title">Linguistic Diversity Remains Unevenly Represented</h2>
+          <img class="figure-preview" src="assets/cross_stage_resource_gaps.png" width="2200" height="2075" alt="Pre-training and post-training resource shares compared with speaker-share and language-count reference baselines across regions, population groups, families, and word orders." loading="lazy">
           <figcaption>
-            <h2 id="gaps-title">Cross-stage Resource Gaps</h2>
-            <p class="figure-description">Pre-training and post-training resource shares compared with reference shares across regions, speaker population groups, language families, and word orders. The panels show how representation changes between stages, with differences reported in percentage points.</p>
+            <p class="figure-description">Beyond individual-language bottlenecks, resource shares reveal persistent disparities across language communities. Regional and population comparisons use speaker-share baselines, while family and word-order comparisons use language-count baselines. Relative to pre-training, Europe's post-training share rises by 33 percentage points, while Africa and the Americas lose 12 and 16 points. Post-training shifts toward languages with 1-100 million speakers, yet smaller-population languages remain marginal. Atlantic-Congo and Austronesian remain underrepresented relative to their language counts; among languages with known word order, SVO remains dominant and SOV stays below its reference share despite gains. These findings motivate targeted supervision collection in underserved regions and communities, alongside broader genealogical and typological coverage. Each stage's shares are normalized separately within eligible language sets, so the percentage-point differences describe changes in representation rather than absolute gains or losses in data volume.</p>
+            <a class="figure-download" href="assets/cross_stage_resource_gaps.pdf" download aria-label="Download linguistic diversity representation figure">Download figure</a>
           </figcaption>
-          <img class="figure-preview" src="assets/cross_stage_resource_gaps.png" width="2200" height="2075" alt="Four panels comparing reference, pre-training, and post-training shares by region, speaker population, genealogical family, and word order." loading="lazy">
-          <a class="figure-download" href="assets/cross_stage_resource_gaps.pdf" download aria-label="Download cross-stage resource gaps">Download figure</a>
-        </figure>
-
-        <figure class="figure-card" aria-labelledby="clusters-title">
-          <figcaption>
-            <h2 id="clusters-title">Cluster Resource Profiles</h2>
-            <p class="figure-description">Three language clusters within each training stage are compared by data quantity, source composition, and task composition. Boxplots summarize resource quantities, while stacked bars show how data sources and tasks differ across the clusters; post-training proportions are power-transformed.</p>
-          </figcaption>
-          <img class="figure-preview" src="assets/combined_cluster_profiles.png" width="2740" height="1194" alt="Pre-training and post-training cluster comparisons, with boxplots of data quantities and stacked bars of source and task proportions." loading="lazy">
-          <a class="figure-download" href="assets/combined_cluster_profiles.pdf" download aria-label="Download cluster resource profiles">Download figure</a>
         </figure>
       </section>
     </main>
