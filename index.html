@@ -161,7 +161,7 @@
       .resource-card h3 { margin: 0 0 12px; color: var(--group-color); font-size: 1.05rem; line-height: 1.4; }
       .group-count { margin: 0 0 12px; color: #526271; font-size: 0.875rem; }
       .group-count strong { color: #172a3a; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
-      .group-description { margin: 0; color: #526271; font-size: 0.9rem; line-height: 1.6; }
+      .group-description { margin: 0; min-height: 4.8em; color: #526271; font-size: 0.9rem; line-height: 1.6; }
       .group-examples { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 20px; padding: 0; list-style: none; }
       .group-examples li { padding: 4px 8px; border-radius: 5px; background: #edf2f6; color: #334b5c; font-size: 0.8rem; line-height: 1.4; }
       .view-languages {
@@ -177,6 +177,7 @@
         cursor: not-allowed;
       }
       .unavailable-group { margin-top: 20px; padding-top: 20px; border-top: 1px dashed #c5d4dd; }
+      .unavailable-group .group-description { min-height: 1.6em; }
       @media (max-width: 900px) {
         .group-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
