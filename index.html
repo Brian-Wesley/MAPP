@@ -18,15 +18,6 @@
         text-align: center;
       }
       main { width: 100%; max-width: 1100px; margin: 0 auto; }
-      main::before {
-        content: "";
-        display: block;
-        width: 48px;
-        height: 4px;
-        margin: 0 auto 28px;
-        border-radius: 2px;
-        background: #237c83;
-      }
       h1 {
         margin: 0;
         font-size: clamp(3.5rem, 12vw, 6rem);
@@ -35,11 +26,11 @@
         line-height: 1.1;
       }
       .title {
-        max-width: 680px;
-        margin: 24px auto 0;
-        font-size: clamp(1.25rem, 4vw, 1.75rem);
+        margin: 0 0 20px;
+        font-size: min(1.75rem, 2.6vw);
         font-weight: 400;
         line-height: 1.5;
+        white-space: nowrap;
       }
       .code-button {
         display: inline-block;
@@ -78,6 +69,8 @@
         font-size: 1rem;
         line-height: 1.7;
       }
+      .figure-card figcaption h2 { margin: 24px 0 12px; }
+      .figure-card figcaption h2 + .figure-description { margin-top: 0; }
       .figure-preview { display: block; width: 100%; height: auto; }
       .figure-download {
         display: inline-block;
@@ -141,14 +134,14 @@
   </head>
   <body>
     <main>
-      <h1>MAPP</h1>
       <p class="title">A Multilingual Atlas of Pretraining and Post-training Data</p>
+      <h1>MAPP</h1>
       <a class="code-button" href="https://anonymous.4open.science/r/low_resource_languages_data_review-CE42/" target="_blank" rel="noopener noreferrer">Code</a>
       <section class="figures" aria-label="Research figures and tables">
         <figure class="figure-card" aria-labelledby="profiles-title">
-          <h2 id="profiles-title">Five Priorities for Developing Language Resources</h2>
           <img class="figure-preview" src="assets/language_resource_profiles.png" width="2400" height="1190" alt="Pre-training and post-training quantities for 2,172 living languages, colored by five development priorities, with a separate band for languages without observed usable post-training data." loading="lazy">
           <figcaption>
+            <h2 id="profiles-title">Five Priorities for Developing Language Resources</h2>
             <p class="figure-description">Matching the stage-specific clusters reveals that a pre-training foundation does not guarantee task-oriented supervision. Among the 2,172 plotted languages, 1,433 have intermediate or large pre-training resources but no observed usable post-training quantity, and 274 have only small post-training resources despite stronger pre-training foundations. These gaps motivate five development regimes: <strong>Expand Pre-training</strong> through quality-controlled corpus collection; <strong>Bootstrap Post-training</strong> by building initial instruction and task datasets; <strong>Scale Up Post-training</strong> beyond small, predominantly synthetic translation slices; <strong>Diversify Post-training</strong> with independently sourced supervision across tasks; and <strong>Refine Both Stages</strong> through provenance auditing, balanced task coverage, and targeted gap filling. The 142 languages in the diversification regime illustrate why substantial example counts from reused translations still leave limited supervision breadth. Together, the regimes guide resource development toward each language's specific bottleneck, with continued human contributions alongside synthetic expansion.</p>
             <a class="figure-download" href="assets/language_resource_profiles.pdf" download aria-label="Download five language resource development priorities figure">Download figure</a>
           </figcaption>
