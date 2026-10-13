@@ -145,6 +145,15 @@
       <p class="title">A Multilingual Atlas of Pretraining and Post-training Data</p>
       <a class="code-button" href="https://anonymous.4open.science/r/low_resource_languages_data_review-CE42/" target="_blank" rel="noopener noreferrer">Code</a>
       <section class="figures" aria-label="Research figures and tables">
+        <figure class="figure-card" aria-labelledby="profiles-title">
+          <h2 id="profiles-title">Five Priorities for Developing Language Resources</h2>
+          <img class="figure-preview" src="assets/language_resource_profiles.png" width="2400" height="1190" alt="Pre-training and post-training quantities for 2,172 living languages, colored by five development priorities, with a separate band for languages without observed usable post-training data." loading="lazy">
+          <figcaption>
+            <p class="figure-description">Matching the stage-specific clusters reveals that a pre-training foundation does not guarantee task-oriented supervision. Among the 2,172 plotted languages, 1,433 have intermediate or large pre-training resources but no observed usable post-training quantity, and 274 have only small post-training resources despite stronger pre-training foundations. These gaps motivate five development regimes: <strong>Expand Pre-training</strong> through quality-controlled corpus collection; <strong>Bootstrap Post-training</strong> by building initial instruction and task datasets; <strong>Scale Up Post-training</strong> beyond small, predominantly synthetic translation slices; <strong>Diversify Post-training</strong> with independently sourced supervision across tasks; and <strong>Refine Both Stages</strong> through provenance auditing, balanced task coverage, and targeted gap filling. The 142 languages in the diversification regime illustrate why substantial example counts from reused translations still leave limited supervision breadth. Together, the regimes guide resource development toward each language's specific bottleneck, with continued human contributions alongside synthetic expansion.</p>
+            <a class="figure-download" href="assets/language_resource_profiles.pdf" download aria-label="Download five language resource development priorities figure">Download figure</a>
+          </figcaption>
+        </figure>
+
         <figure class="figure-card" aria-labelledby="cluster-table-title">
           <h2 id="cluster-table-title">Coverage, Provenance, and Inequality Within Resource Clusters</h2>
           <p class="table-hint">Scroll horizontally to view all columns.</p>
@@ -243,15 +252,6 @@
               <span class="regime-tag refine">Refine Both Stages</span>
             </div>
             <p class="figure-description">Linking the stage-specific profiles exposes gaps that separate coverage statistics cannot show. Of the 7,084 living languages in the reference inventory, 4,912 have no usable observed quantity at either stage. Among the 2,172 with pre-training resources, 1,433 have intermediate or large pre-training foundations but no usable post-training quantity, and another 274 have only small post-training resources. Even within the 502 languages in the largest pre-training cluster, post-training support ranges from absent to comparatively extensive. These intersections motivate different interventions: establishing pre-training foundations, creating initial supervision, expanding limited supervision, diversifying reused translation resources, or refining both stages. The next figure places the five regimes in the language-level resource landscape.</p>
-          </figcaption>
-        </figure>
-
-        <figure class="figure-card" aria-labelledby="profiles-title">
-          <h2 id="profiles-title">Five Priorities for Developing Language Resources</h2>
-          <img class="figure-preview" src="assets/language_resource_profiles.png" width="2400" height="1190" alt="Pre-training and post-training quantities for 2,172 living languages, colored by five development priorities, with a separate band for languages without observed usable post-training data." loading="lazy">
-          <figcaption>
-            <p class="figure-description">Matching the stage-specific clusters reveals that a pre-training foundation does not guarantee task-oriented supervision. Among the 2,172 plotted languages, 1,433 have intermediate or large pre-training resources but no observed usable post-training quantity, and 274 have only small post-training resources despite stronger pre-training foundations. These gaps motivate five development regimes: <strong>Expand Pre-training</strong> through quality-controlled corpus collection; <strong>Bootstrap Post-training</strong> by building initial instruction and task datasets; <strong>Scale Up Post-training</strong> beyond small, predominantly synthetic translation slices; <strong>Diversify Post-training</strong> with independently sourced supervision across tasks; and <strong>Refine Both Stages</strong> through provenance auditing, balanced task coverage, and targeted gap filling. The 142 languages in the diversification regime illustrate why substantial example counts from reused translations still leave limited supervision breadth. Together, the regimes guide resource development toward each language's specific bottleneck, with continued human contributions alongside synthetic expansion.</p>
-            <a class="figure-download" href="assets/language_resource_profiles.pdf" download aria-label="Download five language resource development priorities figure">Download figure</a>
           </figcaption>
         </figure>
 
