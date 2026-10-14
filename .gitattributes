@@ -1,0 +1,12 @@
+# Preserve the exact bytes recorded by the exported figure audit.
+/data/** -text
+/assets/language_resource_profiles.* -text
+/assets/language_resource_profiles_audit.json -text
+
+# Keep content-hashed frontend URLs stable across operating systems.
+/index.html text eol=lf
+/assets/*.js text eol=lf
+/assets/*.css text eol=lf
+/scripts/*.py text eol=lf
+/tests/*.py text eol=lf
+/tests/*.cjs text eol=lf

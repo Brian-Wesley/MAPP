@@ -160,7 +160,6 @@ const languageGroups = {
     updateMatchingCounts();
   });
   document.addEventListener('mapp:catalog-ready', event => updateCounts(event.detail));
-  window.MappData.loadCatalog().then(updateCounts).catch(() => {});
 
   const tabs = [...browser.querySelectorAll('[role="tab"]')];
   const activate = (activeTab) => {
@@ -186,4 +185,12 @@ const languageGroups = {
       tabs[nextIndex].focus();
     });
   });
+  const showLoadError = () => {
+    cards.forEach(({ matching, button }) => {
+      matching.textContent = 'Language data is temporarily unavailable.';
+      button.disabled = true;
+    });
+  };
+  if (!window.MappData || !window.MappExplorer) showLoadError();
+  else window.MappData.loadCatalog().then(updateCounts).catch(showLoadError);
 })();
