@@ -1,80 +1,80 @@
-// Counts and example memberships verified against the supplied language-level
-// pretrain_cluster_results.csv and posttrain_cluster_results.csv.
+// Editorial descriptions and preferred examples. Membership, names and counts
+// are resolved from the shared export; no resource thresholds are used here.
 const languageGroups = {
   regime: [
     {
-      name: 'Expand pre-training', count: 237, tone: 'expand',
+      id: 'expand-pre-training', name: 'Expand pre-training', tone: 'expand',
       description: 'Limited pre-training resources call for a stronger foundation of quality-controlled text.',
-      examples: [{ code: 'rhg', name: 'Rohingya' }, { code: 'hre', name: 'Hre' }, { code: 'agq', name: 'Aghem' }],
+      examples: ['rhg', 'hre', 'agq'],
     },
     {
-      name: 'Bootstrap post-training', count: 1433, tone: 'bootstrap',
+      id: 'bootstrap-post-training', name: 'Bootstrap post-training', tone: 'bootstrap',
       description: 'Existing pre-training resources need initial instruction and task-oriented supervision.',
-      examples: [{ code: 'nav', name: 'Navajo' }, { code: 'mhl', name: 'Mauwake' }, { code: 'udu', name: 'Uduk' }],
+      examples: ['nav', 'mhl', 'udu'],
     },
     {
-      name: 'Scale up post-training', count: 274, tone: 'scale',
+      id: 'scale-up-post-training', name: 'Scale up post-training', tone: 'scale',
       description: 'Stronger pre-training foundations coexist with small post-training datasets that need expansion.',
-      examples: [{ code: 'abk', name: 'Abkhazian' }, { code: 'ain', name: 'Ainu' }, { code: 'abq', name: 'Abaza' }],
+      examples: ['abk', 'ain', 'abq'],
     },
     {
-      name: 'Diversify post-training', count: 142, tone: 'diversify',
+      id: 'diversify-post-training', name: 'Diversify post-training', tone: 'diversify',
       description: 'Substantial pre-training resources coexist with post-training supervision concentrated in limited tasks.',
-      examples: [{ code: 'zul', name: 'Zulu' }, { code: 'mri', name: 'Māori' }, { code: 'lao', name: 'Lao' }],
+      examples: ['zul', 'mri', 'lao'],
     },
     {
-      name: 'Refine both stages', count: 86, tone: 'refine',
+      id: 'refine-both-stages', name: 'Refine both stages', tone: 'refine',
       description: 'Large resources at both stages benefit from provenance auditing, balanced tasks, and targeted gap filling.',
-      examples: [{ code: 'eng', name: 'English' }, { code: 'deu', name: 'German' }, { code: 'fra', name: 'French' }, { code: 'hrv', name: 'Croatian' }],
+      examples: ['eng', 'deu', 'fra', 'hrv'],
     },
     {
-      name: 'No pre-training yet', count: 4912, tone: 'unavailable',
+      id: 'neither-stage-eligible', name: 'No pre-training yet', tone: 'unavailable',
       description: 'No usable resources are recorded at either training stage in the surveyed inventory.',
-      examples: [{ code: 'hru', name: 'Hruso' }, { code: 'oon', name: 'Önge' }, { code: 'anq', name: 'Jarawa (India)' }],
+      examples: ['hru', 'oon', 'anq'],
     },
   ],
   pretrain: [
     {
-      name: 'Cluster 0', count: 237,
+      cluster: 0, name: 'Cluster 0',
       description: 'Limited pre-training text is available from a narrow range of sources.',
-      examples: [{ code: 'rhg', name: 'Rohingya' }, { code: 'hre', name: 'Hre' }, { code: 'agq', name: 'Aghem' }],
+      examples: ['rhg', 'hre', 'agq'],
     },
     {
-      name: 'Cluster 1', count: 1433,
+      cluster: 1, name: 'Cluster 1',
       description: 'Intermediate pre-training resources often draw on language-identification corpora as seeds for expansion.',
-      examples: [{ code: 'udu', name: 'Uduk' }, { code: 'mbj', name: 'Nadëb' }, { code: 'heg', name: 'Helong' }],
+      examples: ['udu', 'mbj', 'heg'],
     },
     {
-      name: 'Cluster 2', count: 502,
+      cluster: 2, name: 'Cluster 2',
       description: 'Large, predominantly collected corpora provide a foundation for language adaptation.',
-      examples: [{ code: 'eng', name: 'English' }, { code: 'spa', name: 'Spanish' }, { code: 'zul', name: 'Zulu' }],
+      examples: ['eng', 'spa', 'zul'],
     },
     {
-      name: 'No usable resources', count: 4912, tone: 'unavailable', unavailable: true,
+      cluster: -1, name: 'No usable resources', tone: 'unavailable', unavailable: true,
       description: 'No usable pre-training quantity is recorded for these languages in the surveyed inventory.',
-      examples: [{ code: 'hru', name: 'Hruso' }, { code: 'oon', name: 'Önge' }, { code: 'anq', name: 'Jarawa (India)' }],
+      examples: ['hru', 'oon', 'anq'],
     },
   ],
   posttrain: [
     {
-      name: 'Cluster 0', count: 296,
+      cluster: 0, name: 'Cluster 0',
       description: 'Small post-training datasets are dominated by synthetic translation with limited collection support.',
-      examples: [{ code: 'abq', name: 'Abaza' }, { code: 'dak', name: 'Dakota' }, { code: 'kgp', name: 'Kaingang' }],
+      examples: ['abq', 'dak', 'kgp'],
     },
     {
-      name: 'Cluster 1', count: 142,
+      cluster: 1, name: 'Cluster 1',
       description: 'Intermediate post-training resources center on expert-created translations with shared underlying content.',
-      examples: [{ code: 'zul', name: 'Zulu' }, { code: 'mri', name: 'Māori' }, { code: 'lao', name: 'Lao' }],
+      examples: ['zul', 'mri', 'lao'],
     },
     {
-      name: 'Cluster 2', count: 86,
+      cluster: 2, name: 'Cluster 2',
       description: 'Large post-training resources combine substantial synthetic translation with broader collection support.',
-      examples: [{ code: 'eng', name: 'English' }, { code: 'deu', name: 'German' }, { code: 'fra', name: 'French' }, { code: 'hrv', name: 'Croatian' }],
+      examples: ['eng', 'deu', 'fra', 'hrv'],
     },
     {
-      name: 'No usable resources', count: 6560, tone: 'unavailable', unavailable: true,
+      cluster: -1, name: 'No usable resources', tone: 'unavailable', unavailable: true,
       description: 'No usable post-training quantity is recorded for these languages in the surveyed inventory.',
-      examples: [{ code: 'nav', name: 'Navajo' }, { code: 'mhl', name: 'Mauwake' }, { code: 'hre', name: 'Hre' }, { code: 'hru', name: 'Hruso' }, { code: 'oon', name: 'Önge' }],
+      examples: ['nav', 'mhl', 'hre', 'hru', 'oon'],
     },
   ],
 };
@@ -90,20 +90,30 @@ const languageGroups = {
     return node;
   };
 
-  const createCard = (group) => {
+  const cards = [];
+  let catalog;
+  let matchingCodes;
+  const createCard = (group, view) => {
     const card = element('article', 'resource-card');
     if (group.tone) card.dataset.tone = group.tone;
     card.append(element('h3', '', group.name));
     const count = element('p', 'group-count');
-    count.append(element('strong', '', group.count.toLocaleString('en-US')), ' languages');
-    card.append(count, element('p', 'group-description', group.description));
+    count.append(element('strong', '', '—'), ' languages in this group');
+    const matching = element('p', 'group-matching', 'Loading matching count…');
+    card.append(count, matching, element('p', 'group-description', group.description));
 
     const examples = element('ul', 'group-examples');
     examples.setAttribute('aria-label', 'Representative languages');
-    group.examples.forEach((language) => examples.append(element('li', '', language.name)));
     const button = element('button', 'view-languages', 'View languages');
     button.type = 'button';
     button.disabled = true;
+    const filter = view === 'regime'
+      ? { regime: group.id }
+      : { [`${view}Cluster`]: String(group.cluster) };
+    button.addEventListener('click', () => window.MappExplorer.select(filter));
+    button.setAttribute('aria-controls', 'language-explorer');
+    button.setAttribute('aria-label', `View all languages in ${view === 'regime' ? '' : view === 'pretrain' ? 'pre-training ' : 'post-training '}${group.name}`);
+    cards.push({ card, count, matching, examples, group, button, filter, members: [] });
     card.append(examples, button);
     return card;
   };
@@ -111,15 +121,46 @@ const languageGroups = {
   Object.entries(languageGroups).forEach(([view, groups]) => {
     const panel = document.getElementById(`panel-${view}`);
     const grid = element('div', 'group-grid');
-    groups.filter((group) => !group.unavailable).forEach((group) => grid.append(createCard(group)));
+    groups.filter((group) => !group.unavailable).forEach((group) => grid.append(createCard(group, view)));
     panel.append(grid);
     const unavailable = groups.find((group) => group.unavailable);
     if (unavailable) {
       const separateGroup = element('div', 'unavailable-group');
-      separateGroup.append(createCard(unavailable));
+      separateGroup.append(createCard(unavailable, view));
       panel.append(separateGroup);
     }
   });
+
+  const updateMatchingCounts = () => {
+    if (!catalog) return;
+    cards.forEach(({ members, matching }) => {
+      const total = matchingCodes ? members.filter(row => matchingCodes.has(row.code)).length : members.length;
+      matching.textContent = `${total.toLocaleString('en-US')} matching current filters`;
+    });
+  };
+  const updateCounts = (value) => {
+    const figure = document.getElementById('resource-profiles-figure');
+    const notice = document.getElementById('profile-version-notice');
+    if (figure && notice) notice.hidden = figure.dataset.version === value.manifest.data_version;
+    if (catalog === value) return;
+    catalog = value;
+    browser.dataset.dataVersion = catalog.manifest.data_version;
+    cards.forEach(card => {
+      card.members = window.MappData.filterLanguages(catalog.languages, card.filter);
+      card.count.replaceChildren(element('strong', '', card.members.length.toLocaleString('en-US')), ' languages in this group');
+      const preferred = card.group.examples.map(code => catalog.byCode.get(code)).filter(row => row && card.members.includes(row));
+      const examples = [...preferred, ...window.MappData.sortLanguages(card.members).filter(row => !preferred.includes(row))].slice(0, card.group.examples.length);
+      card.examples.replaceChildren(...examples.map(row => element('li', '', row.name)));
+      card.button.disabled = false;
+    });
+    updateMatchingCounts();
+  };
+  document.addEventListener('mapp:results-changed', event => {
+    matchingCodes = new Set(event.detail.codes);
+    updateMatchingCounts();
+  });
+  document.addEventListener('mapp:catalog-ready', event => updateCounts(event.detail));
+  window.MappData.loadCatalog().then(updateCounts).catch(() => {});
 
   const tabs = [...browser.querySelectorAll('[role="tab"]')];
   const activate = (activeTab) => {
