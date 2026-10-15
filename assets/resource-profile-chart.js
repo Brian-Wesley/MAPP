@@ -89,6 +89,8 @@
       const close = element('button', 'Close selection');
       close.type = 'button';
       close.addEventListener('click', () => { picker.hidden = true; focusPoint(point.code, true); });
+      const header = element('div', undefined, 'profile-point-picker-header');
+      header.append(heading, close);
       const list = element('div', undefined, 'profile-point-options');
       for (const item of nearby) {
         const button = element('button', `${item.row.name} (${item.code})`);
@@ -96,7 +98,7 @@
         button.addEventListener('click', () => window.MappExplorer.openDetails(item.code));
         list.append(button);
       }
-      picker.append(heading, close, list);
+      picker.append(header, list);
       list.children[0]?.focus({ preventScroll: true });
       picker.scrollIntoView({ block: 'nearest' });
     }

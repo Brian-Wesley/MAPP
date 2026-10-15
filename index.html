@@ -180,7 +180,7 @@
         .browse-tab { flex: 1 1 100%; text-align: left; }
       }
     </style>
-    <link rel="stylesheet" href="assets/language-explorer.css?v=f739d251c0f7">
+    <link rel="stylesheet" href="assets/language-explorer.css?v=e011c9fd0a00">
   </head>
   <body>
     <main>
@@ -191,9 +191,11 @@
         <figure class="figure-card" id="resource-profiles-figure" data-version="d12bb900d0c8a46a" aria-labelledby="profiles-title">
           <div id="resource-profile-chart" class="profile-chart" hidden>
             <p class="profile-help" id="profile-chart-help">Select a legend or a card to highlight a group and filter the table. Select a point for language details. Use arrow keys to browse points and Enter to open details.</p>
-            <div id="profile-chart-legend" class="profile-legend" aria-label="Filter by development regime"></div>
             <div class="profile-chart-scroll" tabindex="0" aria-label="Interactive resource plot, horizontally scrollable">
-              <svg id="profile-chart-svg" viewBox="0 0 1000 500" role="group" aria-label="Interactive language resource profiles" aria-describedby="profile-chart-help"></svg>
+              <div class="profile-chart-frame">
+                <svg id="profile-chart-svg" viewBox="0 0 1000 500" role="group" aria-label="Interactive language resource profiles" aria-describedby="profile-chart-help"></svg>
+                <div id="profile-chart-legend" class="profile-legend" aria-label="Filter by development regime"></div>
+              </div>
             </div>
             <p id="profile-chart-status" class="profile-help" role="status"></p>
             <div id="profile-point-picker" class="profile-point-picker" hidden></div>
@@ -400,6 +402,6 @@
     <script src="assets/language-data.js?v=cd3f207185f9" defer></script>
     <script src="assets/language-explorer.js?v=3c0e054b1eae" defer></script>
     <script src="assets/language-browser.js?v=a31bee575ca1" defer></script>
-    <script src="assets/resource-profile-chart.js?v=8acad45011c6" defer></script>
+    <script src="assets/resource-profile-chart.js?v=0364838cefc5" defer></script>
   </body>
 </html>
