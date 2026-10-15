@@ -83,9 +83,17 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
     assert.equal(button.disabled, false);
     button.click();
     assert.equal(find('count').textContent, `Showing matching languages: ${count.toLocaleString('en-US')}`);
+    assert.equal(button.getAttribute('aria-pressed'), 'true');
+    assert.equal(allCards.filter(item => item.children.at(-1).getAttribute('aria-pressed') === 'true').length, 1);
+    assert.equal(find('selected').children.at(-1).tag, 'strong');
+    button.click();
+    assert.equal(button.getAttribute('aria-pressed'), 'false');
+    assert.equal(find('selected').textContent, 'All languages');
+    assert.equal(find('count').textContent, `Showing matching languages: ${catalog.languages.length.toLocaleString('en-US')}`);
   }
   allCards[3].children.at(-1).click();
   assert.equal(find('selected').textContent, 'Selected regime: Diversify post-training');
+  assert.equal(find('selected').children.at(-1).textContent, 'Diversify post-training');
   find('pages').children.at(-1).click();
   assert.equal(find('range').textContent, 'Showing 26–50 of 142');
   find('sort').value = 'posttrain:desc';
@@ -96,6 +104,7 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   find('download').click();
   assert.equal((await downloaded.text()).split('\r\n').length, 143);
   find('clear').click();
+  assert.ok(allCards.every(card => card.children.at(-1).getAttribute('aria-pressed') === 'false'));
   find('search').value = 'eng';
   find('search').dispatchEvent({ type: 'input' });
   assert.equal(find('count').textContent, 'Showing matching languages: 1');
@@ -123,4 +132,27 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   find('family').value = data.UNKNOWN_FAMILY;
   find('family').dispatchEvent({ type: 'change' });
   assert.equal(find('count').textContent, `Showing matching languages: ${catalog.issues.missingFamily}`);
+
+  // Dropdown changes and card toggles share state; deselection keeps other filters.
+  find('regime').value = 'diversify-post-training';
+  find('regime').dispatchEvent({ type: 'change' });
+  const diversify = allCards[3].children.at(-1);
+  assert.equal(diversify.getAttribute('aria-pressed'), 'true');
+  diversify.click();
+  assert.equal(diversify.getAttribute('aria-pressed'), 'false');
+  assert.equal(find('regime').value, '');
+  assert.equal(find('family').value, data.UNKNOWN_FAMILY);
+  assert.equal(find('count').textContent, `Showing matching languages: ${catalog.issues.missingFamily}`);
+  find('pretrain-cluster').value = '2';
+  find('pretrain-cluster').dispatchEvent({ type: 'change' });
+  find('posttrain-cluster').value = '-1';
+  find('posttrain-cluster').dispatchEvent({ type: 'change' });
+  assert.equal(allCards[8].children.at(-1).getAttribute('aria-pressed'), 'true');
+  assert.equal(allCards[13].children.at(-1).getAttribute('aria-pressed'), 'true');
+  allCards[8].children.at(-1).click();
+  assert.equal(find('pretrain-cluster').value, '');
+  assert.equal(find('posttrain-cluster').value, '-1');
+  assert.equal(allCards[13].children.at(-1).getAttribute('aria-pressed'), 'true');
+  find('clear').click();
+  assert.ok(allCards.every(card => card.children.at(-1).getAttribute('aria-pressed') === 'false'));
 });

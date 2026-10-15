@@ -112,6 +112,7 @@ const languageGroups = {
       : { [`${view}Cluster`]: String(group.cluster) };
     button.addEventListener('click', () => window.MappExplorer.select(filter));
     button.setAttribute('aria-controls', 'language-explorer');
+    button.setAttribute('aria-pressed', 'false');
     button.setAttribute('aria-label', `View all languages in ${view === 'regime' ? '' : view === 'pretrain' ? 'pre-training ' : 'post-training '}${group.name}`);
     cards.push({ card, count, matching, examples, group, button, filter, members: [] });
     card.append(examples, button);
@@ -157,6 +158,10 @@ const languageGroups = {
   };
   document.addEventListener('mapp:results-changed', event => {
     matchingCodes = new Set(event.detail.codes);
+    cards.forEach(({ button, filter }) => {
+      const active = Object.entries(filter).every(([key, value]) => event.detail.filters[key] === value);
+      button.setAttribute('aria-pressed', String(active));
+    });
     updateMatchingCounts();
   });
   document.addEventListener('mapp:catalog-ready', event => updateCounts(event.detail));

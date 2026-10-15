@@ -47,7 +47,13 @@
     }
     if (filters.family) entries.push(['family', filters.family === data.UNKNOWN_FAMILY ? 'Unknown family' : filters.family]);
     if (filters.search.trim()) entries.push(['search', filters.search.trim()]);
-    find('selected').textContent = entries.length === 0 ? 'All languages' : entries.length === 1 ? `Selected ${entries[0][0]}: ${entries[0][1]}` : `Selected filters: ${entries.map(([key, value]) => `${key}: ${value}`).join(' · ')}`;
+    const selected = find('selected');
+    selected.replaceChildren(entries.length === 0 ? 'All languages' : entries.length === 1 ? `Selected ${entries[0][0]}: ` : 'Selected filters: ');
+    entries.forEach(([key, value], index) => {
+      if (index) selected.append(' · ');
+      if (entries.length > 1) selected.append(`${key}: `);
+      selected.append(node('strong', value));
+    });
     find('clear').disabled = entries.length === 0;
     const extraCount = Object.keys(inputs).filter(key => !['search', 'family'].includes(key) && filters[key] !== '').length;
     find('more').textContent = extraCount ? `More filters (${extraCount})` : 'More filters';
@@ -209,7 +215,7 @@
     find('download').disabled = page.total === 0;
     selectionText();
     renderPages(page);
-    document.dispatchEvent(new CustomEvent('mapp:results-changed', { detail: { codes: state.matches.map(row => row.code) } }));
+    document.dispatchEvent(new CustomEvent('mapp:results-changed', { detail: { codes: state.matches.map(row => row.code), filters: { ...state.filters } } }));
   }
   find('sort').addEventListener('change', () => {
     [state.sortKey, state.sortDirection] = find('sort').value.split(':');
@@ -252,7 +258,13 @@
   });
   window.MappExplorer = {
     select(filter) {
-      state.filters = { ...data.emptyFilters(), ...filter };
+      const active = Object.entries(filter).every(([key, value]) => state.filters[key] === value);
+      if (active) {
+        // Remove only this group's filter; retain any search or other filters.
+        for (const key of Object.keys(filter)) state.filters[key] = '';
+      } else {
+        state.filters = { ...data.emptyFilters(), ...filter };
+      }
       state.page = 1;
       syncInputs();
       render();

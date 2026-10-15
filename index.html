@@ -114,8 +114,9 @@
       .diversify { color: #794838; background: #f8efeb; }
       .refine { color: #995000; background: #fff4e5; }
       .group-browser { margin: 24px 0; }
-      .browse-label { margin: 0 0 12px; font-weight: 600; }
-      .browse-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+      .browse-heading { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+      .browse-label { margin: 0; font-weight: 700; white-space: nowrap; }
+      .browse-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
       .browse-tab {
         padding: 10px 16px;
         border: 1px solid #c5d4dd;
@@ -179,7 +180,7 @@
         .browse-tab { flex: 1 1 100%; text-align: left; }
       }
     </style>
-    <link rel="stylesheet" href="assets/language-explorer.css?v=2f2b8fe824f3">
+    <link rel="stylesheet" href="assets/language-explorer.css?v=1858a802cabf">
   </head>
   <body>
     <main>
@@ -194,13 +195,15 @@
           <figcaption>
             <h2 id="profiles-title">Language Resource Profiles</h2>
             <div class="group-browser" id="language-browser">
-              <p class="browse-label" id="browse-label">Browse by:</p>
-              <div class="browse-tabs" role="tablist" aria-labelledby="browse-label">
-                <button class="browse-tab" type="button" id="tab-regime" role="tab" aria-selected="true" aria-controls="panel-regime" tabindex="0">Development regime</button>
-                <button class="browse-tab" type="button" id="tab-pretrain" role="tab" aria-selected="false" aria-controls="panel-pretrain" tabindex="-1">Pre-training cluster</button>
-                <button class="browse-tab" type="button" id="tab-posttrain" role="tab" aria-selected="false" aria-controls="panel-posttrain" tabindex="-1">Post-training cluster</button>
+              <div class="browse-heading">
+                <p class="browse-label" id="browse-label">Browse by:</p>
+                <div class="browse-tabs" role="tablist" aria-labelledby="browse-label">
+                  <button class="browse-tab" type="button" id="tab-regime" role="tab" aria-selected="true" aria-controls="panel-regime" tabindex="0">Development regime</button>
+                  <button class="browse-tab" type="button" id="tab-pretrain" role="tab" aria-selected="false" aria-controls="panel-pretrain" tabindex="-1">Pre-training cluster</button>
+                  <button class="browse-tab" type="button" id="tab-posttrain" role="tab" aria-selected="false" aria-controls="panel-posttrain" tabindex="-1">Post-training cluster</button>
+                </div>
               </div>
-              <p class="group-filter-note">Group totals stay fixed; matching counts reflect all current Explorer filters. View languages opens the full group and clears previous filters.</p>
+              <p class="group-filter-note">Group totals stay fixed; matching counts reflect all current Explorer filters. View languages opens the full group and clears previous filters. Click the selected button again to remove that group filter.</p>
               <div class="browse-panel" id="panel-regime" role="tabpanel" aria-labelledby="tab-regime" tabindex="0"></div>
               <div class="browse-panel" id="panel-pretrain" role="tabpanel" aria-labelledby="tab-pretrain" tabindex="0" hidden></div>
               <div class="browse-panel" id="panel-posttrain" role="tabpanel" aria-labelledby="tab-posttrain" tabindex="0" hidden></div>
@@ -375,7 +378,7 @@
       </section>
     </main>
     <script src="assets/language-data.js?v=434ece0eaef6" defer></script>
-    <script src="assets/language-explorer.js?v=2eda5d5d1736" defer></script>
-    <script src="assets/language-browser.js?v=5c108837a0cf" defer></script>
+    <script src="assets/language-explorer.js?v=aac02b520971" defer></script>
+    <script src="assets/language-browser.js?v=1f8ecaa55c23" defer></script>
   </body>
 </html>

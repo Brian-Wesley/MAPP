@@ -66,6 +66,7 @@
 .detail-datasets td { overflow-wrap: anywhere; }
 .view-languages:enabled { background: #fff; color: #1b6268; border-color: #c5d4dd; cursor: pointer; }
 .view-languages:enabled:hover { background: #edf5f5; }
+.view-languages:enabled[aria-pressed="true"] { background: #237c83; color: #fff; border-color: #237c83; }
 @media (max-width: 600px) {
   .explorer-toolbar > label { width: 100%; }
   #explorer-family { width: 100%; max-width: none; }
