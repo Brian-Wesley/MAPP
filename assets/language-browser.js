@@ -110,7 +110,13 @@ const languageGroups = {
     const filter = view === 'regime'
       ? { regime: group.id }
       : { [`${view}Cluster`]: String(group.cluster) };
-    button.addEventListener('click', () => window.MappExplorer.select(filter));
+    button.addEventListener('click', () => window.MappExplorer.select(filter, { scroll: false }));
+    // The real button remains the keyboard entry point; the rest of the card
+    // is also a pointer target without introducing nested button semantics.
+    card.addEventListener('click', event => {
+      if (event.target.closest('button, a') || window.getSelection()?.toString()) return;
+      button.click();
+    });
     button.setAttribute('aria-controls', 'language-explorer');
     button.setAttribute('aria-pressed', 'false');
     button.setAttribute('aria-label', `View all languages in ${view === 'regime' ? '' : view === 'pretrain' ? 'pre-training ' : 'post-training '}${group.name}`);
@@ -158,9 +164,10 @@ const languageGroups = {
   };
   document.addEventListener('mapp:results-changed', event => {
     matchingCodes = new Set(event.detail.codes);
-    cards.forEach(({ button, filter }) => {
+    cards.forEach(({ card, button, filter }) => {
       const active = Object.entries(filter).every(([key, value]) => event.detail.filters[key] === value);
       button.setAttribute('aria-pressed', String(active));
+      card.dataset.active = String(active);
     });
     updateMatchingCounts();
   });

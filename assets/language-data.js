@@ -128,9 +128,31 @@
   const detailsCache = new Map();
   async function readJSON(path, version) {
     const suffix = version ? `?v=${encodeURIComponent(version)}` : '';
-    const response = await fetch(`data/${safePath(path)}${suffix}`, { cache: 'no-cache' });
-    if (!response.ok) throw new Error(`Could not load ${path} (${response.status}).`);
-    return response.json();
+    const url = `data/${safePath(path)}${suffix}`;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      let response;
+      try {
+        response = await fetch(url, { cache: attempt ? 'no-store' : 'no-cache' });
+      } catch (cause) {
+        if (attempt === 0) {
+          await new Promise(resolve => setTimeout(resolve, 300));
+          continue;
+        }
+        const error = new Error(`Could not load ${path}: network request failed.`, { cause });
+        error.userMessage = 'The network request failed. Check your connection and retry.';
+        throw error;
+      }
+      if (!response.ok) {
+        if (attempt === 0 && (response.status === 408 || response.status === 429 || response.status >= 500)) {
+          await new Promise(resolve => setTimeout(resolve, 300));
+          continue;
+        }
+        const error = new Error(`Could not load ${path} (${response.status}).`);
+        error.userMessage = `The data server returned HTTP ${response.status}. Please retry shortly.`;
+        throw error;
+      }
+      return response.json();
+    }
   }
   function loadCatalog() {
     if (!catalogPromise) catalogPromise = (async () => {

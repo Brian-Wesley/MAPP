@@ -9,7 +9,7 @@ const read = file => fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
 const json = file => JSON.parse(read(`data/${data.resolveDataPath(file)}`));
 const catalog = data.parseCatalog(json('manifest.json'), json('clusters.json'), json('languages.json'));
 class Element {
-  constructor(tag) { this.tag = tag; this.children = []; this.attributes = {}; this.events = {}; this.dataset = {}; this.value = ''; this.disabled = false; }
+  constructor(tag) { this.tag = tag; this.children = []; this.attributes = {}; this.events = {}; this.dataset = {}; this.style = {}; this.value = ''; this.disabled = false; }
   set textContent(value) { this.text = String(value); this.children = []; }
   get textContent() { return (this.text || '') + this.children.map(child => typeof child === 'string' ? child : child.textContent).join(''); }
   append(...children) { for (const child of children) { this.children.push(child); if (typeof child !== 'string') child.parent = this; } }
@@ -17,10 +17,14 @@ class Element {
   setAttribute(key, value) { this.attributes[key] = value; }
   getAttribute(key) { return this.attributes[key] ?? null; }
   addEventListener(type, handler) { (this.events[type] ||= []).push(handler); }
-  dispatchEvent(event) { for (const handler of this.events[event.type] || []) handler({ target: this, ...event }); }
+  dispatchEvent(event) { for (const handler of this.events[event.type] || []) handler({ target: this, preventDefault() {}, ...event }); }
   click() { if (!this.disabled) this.dispatchEvent({ type: 'click' }); }
   focus() { this.focused = true; }
   scrollIntoView() { this.scrolled = true; }
+  getBoundingClientRect() { return { width: 1000 }; }
+  closest() { return ['button', 'a'].includes(this.tag) ? this : this.parent?.closest() || null; }
+  showModal() { this.open = true; }
+  close() { this.open = false; this.dispatchEvent({ type: 'close' }); }
   querySelectorAll() { return []; }
   get isConnected() { return !!this.parent; }
   after(item) { const list = this.parent.children; list.splice(list.indexOf(this) + 1, 0, item); item.parent = this.parent; }
@@ -57,10 +61,20 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   const detailRequests = [];
   let downloaded;
   const window = { MappData: { ...data, loadCatalog: async () => catalog, loadDetails: async code => { detailRequests.push(code); return json(`languages/${code}.json`); } } };
+  window.getSelection = () => null;
   const context = vm.createContext({ window, document, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } }, Blob, URL: { createObjectURL(blob) { downloaded = blob; return 'blob:test'; }, revokeObjectURL() {} }, setTimeout() {} });
   vm.runInContext(read('assets/language-explorer.js'), context);
   vm.runInContext(read('assets/language-browser.js'), context);
   await tick();
+  document.createElementNS = (_namespace, tag) => new Element(tag);
+  require('../assets/resource-profile-chart.js').initialize({ ...window, document, fetch: async () => ({ ok: true, json: async () => JSON.parse(read('assets/resource-profile-points.json')) }) });
+  await tick();
+  const chart = elements.get('profile-chart-svg');
+  const dots = chart.children.filter(item => item.tag === 'circle');
+  const legendButtons = elements.get('profile-chart-legend').children;
+  assert.equal(elements.get('resource-profile-chart').hidden, false);
+  assert.equal(elements.get('profile-paper-figure').open, false);
+  assert.equal(dots.length, JSON.parse(read('assets/resource-profile-points.json')).points.length);
   assert.equal(find('count').textContent, `Showing matching languages: ${catalog.languages.length.toLocaleString('en-US')}`);
   assert.equal(find('rows').children.length, 25);
   assert.equal(detailRequests.length, 0);
@@ -84,6 +98,8 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
     button.click();
     assert.equal(find('count').textContent, `Showing matching languages: ${count.toLocaleString('en-US')}`);
     assert.equal(button.getAttribute('aria-pressed'), 'true');
+    const matching = new Set(window.MappExplorer.getState().codes);
+    assert.equal(dots.filter(dot => dot.dataset.matching === 'true').length, dots.filter(dot => matching.has(dot.dataset.code)).length);
     assert.equal(allCards.filter(item => item.children.at(-1).getAttribute('aria-pressed') === 'true').length, 1);
     assert.equal(find('selected').children.at(-1).tag, 'strong');
     button.click();
@@ -94,6 +110,31 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   allCards[3].children.at(-1).click();
   assert.equal(find('selected').textContent, 'Selected regime: Diversify post-training');
   assert.equal(find('selected').children.at(-1).textContent, 'Diversify post-training');
+  const diversifyLegend = legendButtons.find(item => item.textContent.startsWith('Diversify'));
+  assert.equal(diversifyLegend.getAttribute('aria-pressed'), 'true');
+  diversifyLegend.click();
+  assert.equal(find('selected').textContent, 'All languages');
+  // A click on the card body activates the same shared filter.
+  allCards[3].dispatchEvent({ type: 'click', target: allCards[3].children[0] });
+  assert.equal(diversifyLegend.getAttribute('aria-pressed'), 'true');
+  assert.equal(allCards[3].dataset.active, 'true');
+  assert.equal(dots.find(dot => dot.dataset.code === 'zul').getAttribute('opacity'), '0.8');
+  assert.equal(dots.find(dot => dot.dataset.code === 'eng').getAttribute('opacity'), '0.08');
+  const beforeDetails = JSON.stringify(window.MappExplorer.getState());
+  const beforeRange = find('range').textContent;
+  const dialog = elements.get('language-detail-dialog');
+  const dialogContent = elements.get('language-detail-content');
+  assert.ok(!find('rows').textContent.includes('Zulu'));
+  dots.find(dot => dot.dataset.code === 'zul').dispatchEvent({ type: 'keydown', key: 'Enter' });
+  await tick();
+  assert.equal(dialog.open, true);
+  assert.ok(dialogContent.textContent.includes('Zulu (zul)'));
+  assert.equal(find('range').textContent, beforeRange);
+  assert.equal(JSON.stringify(window.MappExplorer.getState()), beforeDetails);
+  elements.get('language-detail-close').click();
+  assert.equal(dialog.open, false);
+  assert.equal(dialogContent.textContent, '');
+  detailRequests.length = 0;
   find('pages').children.at(-1).click();
   assert.equal(find('range').textContent, 'Showing 26–50 of 142');
   find('sort').value = 'posttrain:desc';
@@ -119,6 +160,15 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   assert.ok(find('rows').textContent.includes('Dataset records'));
   details.click();
   assert.equal(find('rows').children.length, 1);
+  find('search').value = 'alu';
+  find('search').dispatchEvent({ type: 'input' });
+  assert.equal(find('count').textContent, 'Showing matching languages: 1');
+  find('rows').children[0].children[5].children[0].click();
+  await tick();
+  assert.deepEqual(detailRequests, ['eng', 'alu']);
+  assert.ok(find('rows').textContent.includes("'Are'are (alu)"));
+  assert.ok(find('rows').textContent.includes('Not available'));
+  assert.ok(!find('rows').textContent.includes('Could not load details'));
   find('search').value = 'no-language-matches-this';
   find('search').dispatchEvent({ type: 'input' });
   assert.equal(find('range').textContent, 'Showing 0–0 of 0');
@@ -155,4 +205,37 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   assert.equal(allCards[13].children.at(-1).getAttribute('aria-pressed'), 'true');
   find('clear').click();
   assert.ok(allCards.every(card => card.children.at(-1).getAttribute('aria-pressed') === 'false'));
+  assert.ok(legendButtons.every(button => button.getAttribute('aria-pressed') === 'false'));
+  const overlappingDot = dots.find(dot => dots.filter(other => Math.hypot(Number(other.getAttribute('cx')) - Number(dot.getAttribute('cx')), Number(other.getAttribute('cy')) - Number(dot.getAttribute('cy'))) <= 7).length > 1);
+  overlappingDot.click();
+  const picker = elements.get('profile-point-picker');
+  assert.equal(picker.hidden, false);
+  const choices = picker.children.at(-1).children;
+  assert.ok(choices.length > 1);
+  const chosenCode = choices[1].textContent.match(/\(([a-z]{3})\)$/)[1];
+  const rangeBeforePick = find('range').textContent;
+  choices[1].click();
+  await tick();
+  assert.ok(dialogContent.textContent.includes(`(${chosenCode})`));
+  assert.equal(find('range').textContent, rangeBeforePick);
+  dialog.close();
+  const noPretrainingLegend = legendButtons.find(item => item.textContent.startsWith('No pre-training'));
+  noPretrainingLegend.click();
+  assert.ok(dots.every(dot => dot.dataset.matching === 'false'));
+  assert.match(elements.get('profile-chart-status').textContent, /0 matching languages in the plot/);
+  assert.ok(window.MappExplorer.getState().codes.length > 0);
+  noPretrainingLegend.click();
+  // Opening a second language before the first resolves cannot show stale details.
+  let resolveOld;
+  const realLoadDetails = window.MappData.loadDetails;
+  window.MappData.loadDetails = code => code === 'eng' ? new Promise(resolve => { resolveOld = resolve; }) : realLoadDetails(code);
+  window.MappExplorer.openDetails('eng');
+  window.MappExplorer.openDetails('alu');
+  await tick();
+  resolveOld(json('languages/eng.json'));
+  await tick();
+  assert.ok(dialogContent.textContent.includes("'Are'are (alu)"));
+  assert.ok(!dialogContent.textContent.includes('English (eng)'));
+  dialog.close();
+  window.MappData.loadDetails = realLoadDetails;
 });

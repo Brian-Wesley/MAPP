@@ -4,8 +4,9 @@ Anaconda Prompt (base), from MAPP:
     python -B scripts/prepare_site.py
     python -B scripts/prepare_site.py --check
 
-Uses only MAPP files, validates the figure audit, and updates index.html image
-dimensions, figure counts and content-hashed asset URLs. No research repository,
+Uses only MAPP files, validates the figure audit, exports lightweight interactive
+coordinates, and updates index.html image dimensions, figure counts and
+content-hashed asset URLs. No research repository,
 network connection or third-party Python packages are required.
 """
 
@@ -125,6 +126,15 @@ def prepared_html(root):
     return html
 
 
+def profile_points(root):
+    """Compact interactive coordinates from the same audited paper snapshot."""
+    audit = read(Path(root) / 'assets/language_resource_profiles_audit.json')
+    points = [[point['code'], point['x_log10_NCC'], point['y_log10_samples'], point['categorical_jitter']]
+              for point in audit['plotted_languages']]
+    return json.dumps({'data_version': audit['data_version'], 'points': points},
+                      ensure_ascii=False, separators=(',', ':'), allow_nan=False) + '\n'
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--check', action='store_true', help='Verify the page is synchronized, without modifying it')
@@ -132,11 +142,15 @@ def main():
     try:
         portable_details(ROOT, check=args.check)
         html = prepared_html(ROOT)
+        points = profile_points(ROOT)
+        points_file = ROOT / 'assets/resource-profile-points.json'
         index = ROOT / 'index.html'
         if args.check:
             require(index.read_text(encoding='utf-8') == html, 'Page needs syncing. Run python -B scripts/prepare_site.py')
+            require(points_file.read_text(encoding='utf-8') == points, 'Interactive points need syncing. Run python -B scripts/prepare_site.py')
             print('Verified: figure, data, page statistics and asset URLs are synchronized.')
         else:
+            points_file.write_text(points, encoding='utf-8', newline='\n')
             index.write_text(html, encoding='utf-8', newline='\n')
             print(f'Updated: {index}')
         return 0

@@ -1,5 +1,6 @@
 """Verify the actual published snapshot, without requiring the research repo."""
 import importlib.util
+import json
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -14,6 +15,15 @@ class SiteTests(unittest.TestCase):
     def test_page_is_synchronized_and_sync_is_idempotent(self):
         actual = (ROOT / 'index.html').read_text(encoding='utf-8')
         self.assertEqual(site.prepared_html(ROOT), actual)
+
+    def test_interactive_coordinates_match_the_audited_paper_snapshot(self):
+        actual = (ROOT / 'assets/resource-profile-points.json').read_text(encoding='utf-8')
+        self.assertEqual(site.profile_points(ROOT), actual)
+        points = json.loads(actual)
+        audit = site.read(ROOT / 'assets/language_resource_profiles_audit.json')
+        self.assertEqual(points['data_version'], audit['data_version'])
+        self.assertEqual(len(points['points']), audit['plotted_count'])
+        self.assertEqual(len({point[0] for point in points['points']}), audit['plotted_count'])
 
     def test_stale_data_or_image_is_rejected(self):
         real_sha = site.sha

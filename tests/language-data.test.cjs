@@ -109,13 +109,17 @@ test('inconsistent index or detail data is rejected', () => {
 
 test('catalog requests are shared and detail data loads on demand with retry', async () => {
   const calls = [];
-  let failDetail = true;
+  let englishFailures = 2;
+  let areareFailures = 1;
+  const requestOptions = [];
   const previousFetch = global.fetch;
-  global.fetch = async url => {
+  global.fetch = async (url, options) => {
     calls.push(url);
+    requestOptions.push(options);
     const pathname = url.split('?')[0];
-    if (pathname === 'data/languages/eng.json' && failDetail) {
-      failDetail = false;
+    if (pathname === 'data/languages/alu.json' && areareFailures-- > 0) throw new TypeError('Failed to fetch');
+    if (pathname === 'data/languages/hru.json') return { ok: false, status: 404 };
+    if (pathname === 'data/languages/eng.json' && englishFailures-- > 0) {
       return { ok: false, status: 503 };
     }
     return { ok: true, json: async () => read(pathname.replace(/^data\//, '')) };
@@ -125,11 +129,17 @@ test('catalog requests are shared and detail data loads on demand with retry', a
     assert.equal(first, second);
     assert.equal(calls.length, 3);
     assert.ok(calls.slice(1).every(url => url.endsWith(`?v=${manifest.data_version}`)));
-    await assert.rejects(data.loadDetails('eng'), /503/);
+    const areare = await data.loadDetails('alu');
+    assert.equal(areare.name, "'Are'are");
+    assert.equal(calls.filter(url => url.startsWith('data/languages/alu.json')).length, 2);
+    assert.equal(requestOptions.at(-1).cache, 'no-store');
+    await assert.rejects(data.loadDetails('eng'), error => /503/.test(error.message) && /HTTP 503/.test(error.userMessage));
     const [detail, cached] = await Promise.all([data.loadDetails('eng'), data.loadDetails('eng')]);
     assert.equal(detail, cached);
     assert.equal(detail.code, 'eng');
-    assert.equal(calls.filter(url => url === `data/languages/eng.json?v=${manifest.data_version}`).length, 2);
+    assert.equal(calls.filter(url => url === `data/languages/eng.json?v=${manifest.data_version}`).length, 3);
+    await assert.rejects(data.loadDetails('hru'), /404/);
+    assert.equal(calls.filter(url => url.startsWith('data/languages/hru.json')).length, 1);
     await assert.rejects(data.loadDetails('zzz'), /Unknown language/);
   } finally {
     global.fetch = previousFetch;

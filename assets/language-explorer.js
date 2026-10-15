@@ -112,19 +112,24 @@
     }
     return section;
   }
+  const detailRequests = new WeakMap();
   async function showDetails(container, row) {
+    const request = Symbol(row.code);
+    detailRequests.set(container, request);
     container.replaceChildren(node('p', `Loading details for ${row.name}…`));
     try {
       const detail = await data.loadDetails(row.code);
-      if (!container.isConnected) return;
+      if (!container.isConnected || detailRequests.get(container) !== request) return;
       const heading = node('h3', `${detail.name} (${detail.code})`);
       const metadata = node('p', `Family: ${detail.family || 'Unknown family'} · Development regime: ${data.regimeNames[detail.regime] || detail.regime}`);
       const columns = node('div', undefined, 'detail-columns');
       columns.append(stageDetails('pretrain', detail), stageDetails('posttrain', detail));
       container.replaceChildren(heading, metadata, columns);
     } catch (error) {
-      if (!container.isConnected) return;
-      const message = node('p', `Could not load details for ${row.name}. Please try again.`);
+      if (!container.isConnected || detailRequests.get(container) !== request) return;
+      console.error(`Language details failed (${row.code})`, error);
+      const reason = error.userMessage || 'The detail data could not be read or displayed. Please reload the page and retry.';
+      const message = node('p', `Could not load details for ${row.name} (${row.code}). ${reason}`);
       message.setAttribute('role', 'alert');
       container.replaceChildren(message, button('Retry details', () => showDetails(container, row)));
     }
@@ -256,8 +261,24 @@
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
+  const dialog = document.getElementById('language-detail-dialog');
+  const dialogContent = document.getElementById('language-detail-content');
+  document.getElementById('language-detail-close').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('close', () => {
+    detailRequests.delete(dialogContent);
+    dialogContent.replaceChildren();
+  });
   window.MappExplorer = {
-    select(filter) {
+    getState() {
+      return { filters: { ...state.filters }, codes: state.matches.map(row => row.code) };
+    },
+    openDetails(code) {
+      const language = state.catalog?.byCode.get(code);
+      if (!language) return;
+      if (!dialog.open) dialog.showModal();
+      showDetails(dialogContent, language);
+    },
+    select(filter, { scroll = true } = {}) {
       const active = Object.entries(filter).every(([key, value]) => state.filters[key] === value);
       if (active) {
         // Remove only this group's filter; retain any search or other filters.
@@ -268,8 +289,10 @@
       state.page = 1;
       syncInputs();
       render();
-      root.scrollIntoView({ block: 'start' });
-      find('title').focus({ preventScroll: true });
+      if (scroll) {
+        root.scrollIntoView({ block: 'start' });
+        find('title').focus({ preventScroll: true });
+      }
     },
   };
   async function initialize() {
