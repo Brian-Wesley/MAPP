@@ -49,7 +49,7 @@
         outline: 3px solid #172a3a;
         outline-offset: 4px;
       }
-      .figures { margin-top: 64px; text-align: left; }
+      .figures { margin-top: 16px; text-align: left; }
       .figure-card {
         margin: 0 0 32px;
         padding: 28px;
@@ -173,14 +173,14 @@
       }
       @media (max-width: 600px) {
         body { padding: 32px 16px; }
-        .figures { margin-top: 40px; }
+        .figures { margin-top: 16px; }
         .figure-card { padding: 20px 16px; border-radius: 12px; }
         .table-hint { display: block; margin: 0 0 12px; color: #526271; font-size: 0.85rem; }
         .group-grid { grid-template-columns: 1fr; }
         .browse-tab { flex: 1 1 100%; text-align: left; }
       }
     </style>
-    <link rel="stylesheet" href="assets/language-explorer.css?v=e011c9fd0a00">
+    <link rel="stylesheet" href="assets/language-explorer.css?v=f8ebd8741789">
   </head>
   <body>
     <main>
@@ -190,23 +190,17 @@
       <section class="figures" aria-label="Research figures and tables">
         <figure class="figure-card" id="resource-profiles-figure" data-version="d12bb900d0c8a46a" aria-labelledby="profiles-title">
           <div id="resource-profile-chart" class="profile-chart" hidden>
-            <p class="profile-help" id="profile-chart-help">Select a legend or a card to highlight a group and filter the table. Select a point for language details. Use arrow keys to browse points and Enter to open details.</p>
+            <p class="profile-help" id="profile-chart-help">Select a card or legend to filter; select a point for language details.<span class="visually-hidden"> Use arrow keys to browse points and Enter to open details.</span></p>
             <div class="profile-chart-scroll" tabindex="0" aria-label="Interactive resource plot, horizontally scrollable">
               <div class="profile-chart-frame">
-                <svg id="profile-chart-svg" viewBox="0 0 1000 500" role="group" aria-label="Interactive language resource profiles" aria-describedby="profile-chart-help"></svg>
+                <svg id="profile-chart-svg" viewBox="0 20 1000 480" role="group" aria-label="Interactive language resource profiles" aria-describedby="profile-chart-help"></svg>
                 <div id="profile-chart-legend" class="profile-legend" aria-label="Filter by development regime"></div>
               </div>
             </div>
-            <p id="profile-chart-status" class="profile-help" role="status"></p>
+            <p id="profile-chart-status" class="visually-hidden" role="status"></p>
             <div id="profile-point-picker" class="profile-point-picker" hidden></div>
           </div>
           <p id="profile-chart-error" class="table-notes" role="status" hidden></p>
-          <details id="profile-paper-figure" class="profile-paper-figure" open>
-            <summary>Paper figure — click the preview to open the PDF</summary>
-          <a class="figure-preview-link" href="assets/language_resource_profiles.pdf?v=8860d28a44ed" target="_blank" rel="noopener noreferrer" aria-label="Open language resource profiles as PDF (new tab)" title="Open PDF in a new tab">
-            <img class="figure-preview" id="resource-profiles-image" src="assets/language_resource_profiles.png?v=8e6dfe423714" width="3390" height="1680" alt="Pre-training and post-training quantities for 2,172 living languages, colored by five development priorities, with a separate band for languages without observed usable post-training data." aria-describedby="profiles-reading-notes" loading="lazy">
-          </a>
-          </details>
           <figcaption>
             <h2 id="profiles-title">Language Resource Profiles</h2>
             <div class="group-browser" id="language-browser">
@@ -273,6 +267,17 @@
                 <nav id="explorer-pages" aria-label="Language results pages"></nav>
               </div>
             </section>
+          </figcaption>
+        </figure>
+
+        <figure class="figure-card" aria-label="Paper figure and discussion">
+          <details id="profile-paper-figure" class="profile-paper-figure" open>
+            <summary>Paper figure — click the preview to open the PDF</summary>
+          <a class="figure-preview-link" href="assets/language_resource_profiles.pdf?v=8860d28a44ed" target="_blank" rel="noopener noreferrer" aria-label="Open language resource profiles as PDF (new tab)" title="Open PDF in a new tab">
+            <img class="figure-preview" id="resource-profiles-image" src="assets/language_resource_profiles.png?v=8e6dfe423714" width="3390" height="1680" alt="Pre-training and post-training quantities for 2,172 living languages, colored by five development priorities, with a separate band for languages without observed usable post-training data." aria-describedby="profiles-reading-notes" loading="lazy">
+          </a>
+          </details>
+          <figcaption>
             <p class="figure-description">Matching the stage-specific clusters reveals that a pre-training foundation does not guarantee task-oriented supervision. Among the <span id="profile-stat-plotted">2,172</span> plotted languages, <span id="profile-stat-bootstrap">1,433</span> have intermediate or large pre-training resources but no observed usable post-training quantity, and <span id="profile-stat-scale">274</span> have only small post-training resources despite stronger pre-training foundations. These gaps motivate five development regimes: <strong>Expand Pre-training</strong> through quality-controlled corpus collection; <strong>Bootstrap Post-training</strong> by building initial instruction and task datasets; <strong>Scale Up Post-training</strong> beyond small, predominantly synthetic translation slices; <strong>Diversify Post-training</strong> with independently sourced supervision across tasks; and <strong>Refine Both Stages</strong> through provenance auditing, balanced task coverage, and targeted gap filling. The <span id="profile-stat-diversify">142</span> languages in the diversification regime illustrate why substantial example counts from reused translations still leave limited supervision breadth. Together, the regimes guide resource development toward each language's specific bottleneck, with continued human contributions alongside synthetic expansion.</p>
             <p class="table-notes" id="profiles-reading-notes">Each point represents one ISO 639-3 language; coincident points may overlap. Both numeric axes use base-10 logarithms. Languages without usable post-training quantities appear in a separate strip whose vertical position does not represent quantity. The <span id="profile-stat-omitted">4,912</span> languages without usable pre-training quantities remain available in the Language Explorer. In the paper figure, highlighted NCC intervals are expanded in log space for visibility (2× for Abkhazian, Zulu and English; 5× for Navajo; 10× for other highlighted languages); their displayed widths are not the true 95% confidence intervals. Details in the Explorer show the original bounds.</p>
             <p class="table-notes" id="profile-version-notice" role="status" hidden>This figure reflects a different data snapshot. The Language Explorer shows the current data.</p>
@@ -402,6 +407,6 @@
     <script src="assets/language-data.js?v=cd3f207185f9" defer></script>
     <script src="assets/language-explorer.js?v=3c0e054b1eae" defer></script>
     <script src="assets/language-browser.js?v=a31bee575ca1" defer></script>
-    <script src="assets/resource-profile-chart.js?v=0364838cefc5" defer></script>
+    <script src="assets/resource-profile-chart.js?v=ab08990e0b23" defer></script>
   </body>
 </html>

@@ -139,8 +139,8 @@
         svg.append(shape('line', { x1: 90, x2: 970, y1: cy, y2: cy, class: 'profile-gridline' }));
         svg.append(shape('text', { x: 77, y: cy + 5, 'text-anchor': 'end' }, String(y)));
       }
-      svg.append(shape('text', { x: 530, y: 491, 'text-anchor': 'middle' }, 'Pre-training quantity — log₁₀ NCC'));
-      svg.append(shape('text', { transform: 'translate(23 187) rotate(-90)', 'text-anchor': 'middle' }, 'Post-training — log₁₀ sample equivalents'));
+      svg.append(shape('text', { x: 530, y: 491, 'text-anchor': 'middle' }, 'Pre-training log(Q)'));
+      svg.append(shape('text', { transform: 'translate(23 187) rotate(-90)', 'text-anchor': 'middle' }, 'Post-training log(Q)'));
       svg.append(shape('text', { x: 90, y: 369, class: 'profile-strip-label' }, 'No usable post-training quantity (categorical strip)'));
       for (const point of layout.points) {
         const label = `${point.row.name} (${point.code}) · ${window.MappData.regimeNames[point.row.regime] || point.row.regime}`;
@@ -173,7 +173,7 @@
         const swatch = element('span', undefined, 'profile-swatch');
         swatch.style.backgroundColor = colors[group.id] || colors.other;
         swatch.setAttribute('aria-hidden', 'true');
-        button.append(swatch, `${window.MappData.regimeNames[group.id] || group.name} (${group.n_languages.toLocaleString('en-US')})`);
+        button.append(swatch, `${window.MappData.regimeNames[group.id] || group.name} (${group.n_languages.toLocaleString('en-US')} languages)`);
         button.addEventListener('click', () => window.MappExplorer.select({ regime: group.id }, { scroll: false }));
         legendButtons.set(group.id, button);
         legend.append(button);
