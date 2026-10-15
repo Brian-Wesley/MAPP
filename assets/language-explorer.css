@@ -1,5 +1,6 @@
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.explorer { scroll-margin-top: 24px; }
+.explorer { margin: 32px 0; scroll-margin-top: 24px; }
+.explorer > h3 { margin: 0 0 20px; font-size: 1.25rem; line-height: 1.4; }
 .explorer [hidden] { display: none; }
 .explorer button, .explorer select, .explorer input {
   min-height: 38px;

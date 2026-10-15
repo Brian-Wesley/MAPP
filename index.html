@@ -72,18 +72,7 @@
       .figure-card figcaption h2 { margin: 24px 0 12px; }
       .figure-card figcaption h2 + .figure-description { margin-top: 0; }
       .figure-preview { display: block; width: 100%; height: auto; }
-      .figure-download {
-        display: inline-block;
-        margin-top: 20px;
-        padding: 8px 16px;
-        border: 1px solid #c5d4dd;
-        border-radius: 8px;
-        color: #1b6268;
-        font-size: 0.9rem;
-        font-weight: 600;
-        text-decoration: none;
-      }
-      .figure-download:hover { background: #edf5f5; }
+      .figure-preview-link { display: block; cursor: zoom-in; }
       .table-scroll {
         max-width: 100%;
         overflow-x: auto;
@@ -190,7 +179,7 @@
         .browse-tab { flex: 1 1 100%; text-align: left; }
       }
     </style>
-    <link rel="stylesheet" href="assets/language-explorer.css?v=8fd7a837dcc0">
+    <link rel="stylesheet" href="assets/language-explorer.css?v=2f2b8fe824f3">
   </head>
   <body>
     <main>
@@ -199,9 +188,11 @@
       <a class="code-button" href="https://anonymous.4open.science/r/low_resource_languages_data_review-CE42/" target="_blank" rel="noopener noreferrer">Code</a>
       <section class="figures" aria-label="Research figures and tables">
         <figure class="figure-card" id="resource-profiles-figure" data-version="d12bb900d0c8a46a" aria-labelledby="profiles-title">
-          <img class="figure-preview" id="resource-profiles-image" src="assets/language_resource_profiles.png?v=8e6dfe423714" width="3390" height="1680" alt="Pre-training and post-training quantities for 2,172 living languages, colored by five development priorities, with a separate band for languages without observed usable post-training data." aria-describedby="profiles-reading-notes" loading="lazy">
+          <a class="figure-preview-link" href="assets/language_resource_profiles.pdf?v=8860d28a44ed" target="_blank" rel="noopener noreferrer" aria-label="Open language resource profiles as PDF (new tab)" title="Open PDF in a new tab">
+            <img class="figure-preview" id="resource-profiles-image" src="assets/language_resource_profiles.png?v=8e6dfe423714" width="3390" height="1680" alt="Pre-training and post-training quantities for 2,172 living languages, colored by five development priorities, with a separate band for languages without observed usable post-training data." aria-describedby="profiles-reading-notes" loading="lazy">
+          </a>
           <figcaption>
-            <h2 id="profiles-title">Five Priorities for Developing Language Resources</h2>
+            <h2 id="profiles-title">Language Resource Profiles</h2>
             <div class="group-browser" id="language-browser">
               <p class="browse-label" id="browse-label">Browse by:</p>
               <div class="browse-tabs" role="tablist" aria-labelledby="browse-label">
@@ -215,62 +206,60 @@
               <div class="browse-panel" id="panel-posttrain" role="tabpanel" aria-labelledby="tab-posttrain" tabindex="0" hidden></div>
               <noscript><p class="table-notes">Enable JavaScript to browse language groups.</p></noscript>
             </div>
+            <section class="explorer" id="language-explorer" aria-labelledby="explorer-title">
+              <h3 id="explorer-title" tabindex="-1">Language Explorer</h3>
+              <div class="explorer-selection">
+                <p id="explorer-selected">All languages</p>
+                <button type="button" id="explorer-clear" disabled>Clear filter</button>
+              </div>
+              <div id="explorer-message" role="status"><p>Loading language data…</p></div>
+              <fieldset class="explorer-controls" id="explorer-controls" disabled>
+                <legend class="visually-hidden">Filter languages</legend>
+                <div class="explorer-toolbar">
+                  <label class="explorer-search"><span class="visually-hidden">Search language name or ISO code</span><input type="search" id="explorer-search" placeholder="Search language name or ISO code…" autocomplete="off"></label>
+                  <label><span class="visually-hidden">Family</span><select id="explorer-family"><option value="">All families</option></select></label>
+                  <button type="button" id="explorer-more" aria-expanded="false" aria-controls="explorer-extra">More filters</button>
+                </div>
+                <div class="explorer-sort">
+                  <label for="explorer-sort">Sort by:</label>
+                  <select id="explorer-sort">
+                    <option value="name:asc">Language: A–Z</option><option value="name:desc">Language: Z–A</option>
+                    <option value="code:asc">ISO code: A–Z</option><option value="code:desc">ISO code: Z–A</option>
+                    <option value="pretrain:desc">Pre-training NCC: highest first</option><option value="pretrain:asc">Pre-training NCC: lowest first</option>
+                    <option value="posttrain:desc">Post-training samples: highest first</option><option value="posttrain:asc">Post-training samples: lowest first</option>
+                    <option value="family:asc">Family: A–Z</option><option value="family:desc">Family: Z–A</option>
+                  </select>
+                </div>
+                <div class="explorer-extra" id="explorer-extra" hidden>
+                  <label>Development regime<select id="explorer-regime"><option value="">All regimes</option></select></label>
+                  <label>Pre-training cluster<select id="explorer-pretrain-cluster"><option value="">All clusters</option><option value="0">Cluster 0</option><option value="1">Cluster 1</option><option value="2">Cluster 2</option><option value="-1">No usable resources (-1)</option></select></label>
+                  <label>Post-training cluster<select id="explorer-posttrain-cluster"><option value="">All clusters</option><option value="0">Cluster 0</option><option value="1">Cluster 1</option><option value="2">Cluster 2</option><option value="-1">No usable resources (-1)</option></select></label>
+                  <label>Pre-training availability<select id="explorer-pretrain-status"><option value="">All statuses</option><option value="clustered">Usable quantity</option><option value="uncovered">Not covered</option><option value="quantity_unavailable">Quantity unavailable</option></select></label>
+                  <label>Post-training availability<select id="explorer-posttrain-status"><option value="">All statuses</option><option value="clustered">Usable quantity</option><option value="uncovered">Not covered</option><option value="quantity_unavailable">Quantity unavailable</option></select></label>
+                </div>
+              </fieldset>
+              <div class="explorer-results">
+                <p id="explorer-count" aria-live="polite">Showing matching languages: —</p>
+                <button type="button" id="explorer-download" disabled>Download filtered CSV</button>
+              </div>
+              <div class="table-scroll" role="region" aria-label="Language search results, horizontally scrollable" tabindex="0">
+                <table class="explorer-table" aria-labelledby="explorer-title">
+                  <colgroup><col class="col-language"><col class="col-code"><col class="col-stage"><col class="col-stage"><col class="col-family"><col class="col-details"></colgroup>
+                  <thead><tr><th scope="col">Language</th><th scope="col">ISO 639-3</th><th scope="col">Pre-training</th><th scope="col">Post-training</th><th scope="col">Family</th><th scope="col">Details</th></tr></thead>
+                  <tbody id="explorer-rows"><tr><td colspan="6">Loading languages…</td></tr></tbody>
+                </table>
+              </div>
+              <div class="explorer-pagination">
+                <label>Rows per page: <select id="explorer-page-size" disabled><option value="25">25</option><option value="50">50</option><option value="100">100</option></select></label>
+                <p id="explorer-range">Showing 0–0 of 0</p>
+                <nav id="explorer-pages" aria-label="Language results pages"></nav>
+              </div>
+            </section>
             <p class="figure-description">Matching the stage-specific clusters reveals that a pre-training foundation does not guarantee task-oriented supervision. Among the <span id="profile-stat-plotted">2,172</span> plotted languages, <span id="profile-stat-bootstrap">1,433</span> have intermediate or large pre-training resources but no observed usable post-training quantity, and <span id="profile-stat-scale">274</span> have only small post-training resources despite stronger pre-training foundations. These gaps motivate five development regimes: <strong>Expand Pre-training</strong> through quality-controlled corpus collection; <strong>Bootstrap Post-training</strong> by building initial instruction and task datasets; <strong>Scale Up Post-training</strong> beyond small, predominantly synthetic translation slices; <strong>Diversify Post-training</strong> with independently sourced supervision across tasks; and <strong>Refine Both Stages</strong> through provenance auditing, balanced task coverage, and targeted gap filling. The <span id="profile-stat-diversify">142</span> languages in the diversification regime illustrate why substantial example counts from reused translations still leave limited supervision breadth. Together, the regimes guide resource development toward each language's specific bottleneck, with continued human contributions alongside synthetic expansion.</p>
             <p class="table-notes" id="profiles-reading-notes">Each point represents one ISO 639-3 language; coincident points may overlap. Both numeric axes use base-10 logarithms. Languages without usable post-training quantities appear in a separate strip whose vertical position does not represent quantity. The <span id="profile-stat-omitted">4,912</span> languages without usable pre-training quantities remain available in the Language Explorer. Highlighted NCC intervals are expanded in log space for visibility (2× for Abkhazian, Zulu and English; 5× for Navajo; 10× for other highlighted languages); their displayed widths are not the true 95% confidence intervals. Details in the Explorer show the original bounds.</p>
             <p class="table-notes" id="profile-version-notice" role="status" hidden>This figure reflects a different data snapshot. The Language Explorer shows the current data.</p>
-            <a class="figure-download" id="resource-profiles-download" href="assets/language_resource_profiles.pdf?v=8860d28a44ed" download aria-label="Download five language resource development priorities figure as PDF">Download figure</a>
           </figcaption>
         </figure>
-
-        <section class="figure-card explorer" id="language-explorer" aria-labelledby="explorer-title">
-          <h2 id="explorer-title" tabindex="-1">Language Explorer</h2>
-          <div class="explorer-selection">
-            <p id="explorer-selected">All languages</p>
-            <button type="button" id="explorer-clear" disabled>Clear filter</button>
-          </div>
-          <div id="explorer-message" role="status"><p>Loading language data…</p></div>
-          <fieldset class="explorer-controls" id="explorer-controls" disabled>
-            <legend class="visually-hidden">Filter languages</legend>
-            <div class="explorer-toolbar">
-              <label class="explorer-search"><span class="visually-hidden">Search language name or ISO code</span><input type="search" id="explorer-search" placeholder="Search language name or ISO code…" autocomplete="off"></label>
-              <label><span class="visually-hidden">Family</span><select id="explorer-family"><option value="">All families</option></select></label>
-              <button type="button" id="explorer-more" aria-expanded="false" aria-controls="explorer-extra">More filters</button>
-            </div>
-            <div class="explorer-sort">
-              <label for="explorer-sort">Sort by:</label>
-              <select id="explorer-sort">
-                <option value="name:asc">Language: A–Z</option><option value="name:desc">Language: Z–A</option>
-                <option value="code:asc">ISO code: A–Z</option><option value="code:desc">ISO code: Z–A</option>
-                <option value="pretrain:desc">Pre-training NCC: highest first</option><option value="pretrain:asc">Pre-training NCC: lowest first</option>
-                <option value="posttrain:desc">Post-training samples: highest first</option><option value="posttrain:asc">Post-training samples: lowest first</option>
-                <option value="family:asc">Family: A–Z</option><option value="family:desc">Family: Z–A</option>
-              </select>
-            </div>
-            <div class="explorer-extra" id="explorer-extra" hidden>
-              <label>Development regime<select id="explorer-regime"><option value="">All regimes</option></select></label>
-              <label>Pre-training cluster<select id="explorer-pretrain-cluster"><option value="">All clusters</option><option value="0">Cluster 0</option><option value="1">Cluster 1</option><option value="2">Cluster 2</option><option value="-1">No usable resources (-1)</option></select></label>
-              <label>Post-training cluster<select id="explorer-posttrain-cluster"><option value="">All clusters</option><option value="0">Cluster 0</option><option value="1">Cluster 1</option><option value="2">Cluster 2</option><option value="-1">No usable resources (-1)</option></select></label>
-              <label>Pre-training availability<select id="explorer-pretrain-status"><option value="">All statuses</option><option value="clustered">Usable quantity</option><option value="uncovered">Not covered</option><option value="quantity_unavailable">Quantity unavailable</option></select></label>
-              <label>Post-training availability<select id="explorer-posttrain-status"><option value="">All statuses</option><option value="clustered">Usable quantity</option><option value="uncovered">Not covered</option><option value="quantity_unavailable">Quantity unavailable</option></select></label>
-            </div>
-          </fieldset>
-          <div class="explorer-results">
-            <p id="explorer-count" aria-live="polite">Showing matching languages: —</p>
-            <button type="button" id="explorer-download" disabled>Download filtered CSV</button>
-          </div>
-          <div class="table-scroll" role="region" aria-label="Language search results, horizontally scrollable" tabindex="0">
-            <table class="explorer-table" aria-labelledby="explorer-title">
-              <colgroup><col class="col-language"><col class="col-code"><col class="col-stage"><col class="col-stage"><col class="col-family"><col class="col-details"></colgroup>
-              <thead><tr><th scope="col">Language</th><th scope="col">ISO 639-3</th><th scope="col">Pre-training</th><th scope="col">Post-training</th><th scope="col">Family</th><th scope="col">Details</th></tr></thead>
-              <tbody id="explorer-rows"><tr><td colspan="6">Loading languages…</td></tr></tbody>
-            </table>
-          </div>
-          <div class="explorer-pagination">
-            <label>Rows per page: <select id="explorer-page-size" disabled><option value="25">25</option><option value="50">50</option><option value="100">100</option></select></label>
-            <p id="explorer-range">Showing 0–0 of 0</p>
-            <nav id="explorer-pages" aria-label="Language results pages"></nav>
-          </div>
-        </section>
 
         <figure class="figure-card" aria-labelledby="cluster-table-title">
           <h2 id="cluster-table-title">Coverage, Provenance, and Inequality Within Resource Clusters</h2>
@@ -333,10 +322,11 @@
 
         <figure class="figure-card" aria-labelledby="clusters-title">
           <h2 id="clusters-title">Training Resources Differ in Both Quantity and Provenance</h2>
-          <img class="figure-preview" src="assets/combined_cluster_profiles.png?v=225d840a0059" width="2740" height="1194" alt="Three clusters per training stage, showing data quantity distributions and the source and task composition of each cluster." loading="lazy">
+          <a class="figure-preview-link" href="assets/combined_cluster_profiles.pdf?v=6ee53466f450" target="_blank" rel="noopener noreferrer" aria-label="Open training resource quantity and provenance as PDF (new tab)" title="Open PDF in a new tab">
+            <img class="figure-preview" src="assets/combined_cluster_profiles.png?v=225d840a0059" width="2740" height="1194" alt="Three clusters per training stage, showing data quantity distributions and the source and task composition of each cluster." loading="lazy">
+          </a>
           <figcaption>
             <p class="figure-description">Across 36 pre-training and 188 post-training collections, the survey records usable resources for 2,172 and 524 living languages, respectively, out of a reference inventory of 7,084. Pre-training quantity is measured in Normalized Character Count (NCC), while post-training quantity counts response-level sample equivalents. Languages with observed resources are clustered separately within each stage using quantity and source composition; task distributions help interpret the resulting profiles. Intermediate pre-training profiles often rely on language-identification corpora, while post-training is translation-centered, ranging from small synthetic slices to reused expert translations and larger synthetic-heavy mixtures. Large totals or high expert-created shares can therefore conceal narrow supervision and dependence on shared source material. Provenance categories describe construction processes and do not directly measure data quality; post-training source and task proportions in this figure are power-transformed.</p>
-            <a class="figure-download" href="assets/combined_cluster_profiles.pdf?v=6ee53466f450" download aria-label="Download training resource quantity and provenance figure">Download figure</a>
           </figcaption>
         </figure>
 
@@ -375,10 +365,11 @@
 
         <figure class="figure-card" aria-labelledby="gaps-title">
           <h2 id="gaps-title">Linguistic Diversity Remains Unevenly Represented</h2>
-          <img class="figure-preview" src="assets/cross_stage_resource_gaps.png?v=cdc0dde65c90" width="2200" height="2075" alt="Pre-training and post-training resource shares compared with speaker-share and language-count reference baselines across regions, population groups, families, and word orders." loading="lazy">
+          <a class="figure-preview-link" href="assets/cross_stage_resource_gaps.pdf?v=747fe137abf5" target="_blank" rel="noopener noreferrer" aria-label="Open linguistic diversity representation as PDF (new tab)" title="Open PDF in a new tab">
+            <img class="figure-preview" src="assets/cross_stage_resource_gaps.png?v=cdc0dde65c90" width="2200" height="2075" alt="Pre-training and post-training resource shares compared with speaker-share and language-count reference baselines across regions, population groups, families, and word orders." loading="lazy">
+          </a>
           <figcaption>
             <p class="figure-description">Beyond individual-language bottlenecks, resource shares reveal persistent disparities across language communities. Regional and population comparisons use speaker-share baselines, while family and word-order comparisons use language-count baselines. Relative to pre-training, Europe's post-training share rises by 33 percentage points, while Africa and the Americas lose 12 and 16 points. Post-training shifts toward languages with 1-100 million speakers, yet smaller-population languages remain marginal. Atlantic-Congo and Austronesian remain underrepresented relative to their language counts; among languages with known word order, SVO remains dominant and SOV stays below its reference share despite gains. These findings motivate targeted supervision collection in underserved regions and communities, alongside broader genealogical and typological coverage. Each stage's shares are normalized separately within eligible language sets, so the percentage-point differences describe changes in representation rather than absolute gains or losses in data volume.</p>
-            <a class="figure-download" href="assets/cross_stage_resource_gaps.pdf?v=747fe137abf5" download aria-label="Download linguistic diversity representation figure">Download figure</a>
           </figcaption>
         </figure>
       </section>
