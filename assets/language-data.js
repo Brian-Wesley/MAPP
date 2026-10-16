@@ -126,6 +126,48 @@
   }
   let catalogPromise;
   const detailsCache = new Map();
+  let staticCatalogPromise;
+  const staticChunks = new Map();
+  const needsStaticScripts = () => typeof document !== 'undefined' && globalThis.origin === 'null';
+  function loadStaticScript(path) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.async = true;
+      // Classic scripts are supported by anonymous hosts even when their page
+      // sandbox gives fetch an opaque origin. All URLs remain on this site.
+      script.src = path;
+      script.onload = () => { script.remove(); resolve(); };
+      script.onerror = () => {
+        script.remove();
+        reject(new Error(`Could not load static data: ${path}`));
+      };
+      document.head.append(script);
+    });
+  }
+  function loadStaticCatalog() {
+    if (!staticCatalogPromise) staticCatalogPromise = (async () => {
+      const version = document.getElementById('resource-profiles-figure')?.dataset.version || '';
+      await loadStaticScript(`assets/static-data/catalog.js?v=${encodeURIComponent(version)}`);
+      const bundle = globalThis.MappStaticCatalog;
+      requireValue(bundle?.manifest?.data_version && bundle.points?.data_version === bundle.manifest.data_version,
+        'Static catalog and plot versions differ.');
+      requireValue(!version || version === bundle.manifest.data_version, 'Static catalog and page versions differ.');
+      return bundle;
+    })().catch(error => { staticCatalogPromise = null; throw error; });
+    return staticCatalogPromise;
+  }
+  async function loadStaticDetails(code, version) {
+    const initial = code[0];
+    if (!staticChunks.has(initial)) staticChunks.set(initial, (async () => {
+      await loadStaticScript(`assets/static-data/details-${initial}.js?v=${encodeURIComponent(version)}`);
+      const chunk = globalThis.MappStaticDetails?.[initial];
+      requireValue(chunk?.data_version === version, 'Static details and catalog versions differ.');
+      return chunk.languages;
+    })().catch(error => { staticChunks.delete(initial); throw error; }));
+    const languages = await staticChunks.get(initial);
+    requireValue(Object.hasOwn(languages, code), 'Language is missing from static details.');
+    return languages[code];
+  }
   async function readJSON(path, version) {
     const suffix = version ? `?v=${encodeURIComponent(version)}` : '';
     const url = `data/${safePath(path)}${suffix}`;
@@ -156,6 +198,10 @@
   }
   function loadCatalog() {
     if (!catalogPromise) catalogPromise = (async () => {
+      if (needsStaticScripts()) {
+        const bundle = await loadStaticCatalog();
+        return parseCatalog(bundle.manifest, bundle.clusters, bundle.index);
+      }
       const manifest = await readJSON('manifest.json');
       requireValue(manifest.schema_version === SCHEMA, 'Unsupported language data schema.');
       requireValue(typeof manifest.data_version === 'string' && manifest.data_version.length > 0, 'Missing export version.');
@@ -168,8 +214,18 @@
     const catalog = await loadCatalog();
     const row = catalog.byCode.get(code);
     requireValue(row, 'Unknown language code.');
-    if (!detailsCache.has(code)) detailsCache.set(code, readJSON(row.details, catalog.manifest.data_version).then(raw => parseDetails(raw, row)).catch(error => { detailsCache.delete(code); throw error; }));
+    if (!detailsCache.has(code)) {
+      const request = needsStaticScripts() ? loadStaticDetails(code, catalog.manifest.data_version) : readJSON(row.details, catalog.manifest.data_version);
+      detailsCache.set(code, request.then(raw => parseDetails(raw, row)).catch(error => { detailsCache.delete(code); throw error; }));
+    }
     return detailsCache.get(code);
   }
-  return { SCHEMA, STAGES, STATUSES, UNKNOWN_FAMILY, regimeNames, statusNames, emptyFilters, resolveDataPath: safePath, parseCatalog, parseDetails, filterLanguages, sortLanguages, paginate, toCSV, formatQuantity, loadCatalog, loadDetails };
+  async function loadPlotPoints() {
+    const catalog = await loadCatalog();
+    if (needsStaticScripts()) return (await loadStaticCatalog()).points;
+    const response = await fetch(`assets/resource-profile-points.json?v=${encodeURIComponent(catalog.manifest.data_version)}`, { cache: 'no-cache' });
+    if (!response.ok) throw new Error(`Plot request failed (${response.status}).`);
+    return response.json();
+  }
+  return { SCHEMA, STAGES, STATUSES, UNKNOWN_FAMILY, regimeNames, statusNames, emptyFilters, resolveDataPath: safePath, parseCatalog, parseDetails, filterLanguages, sortLanguages, paginate, toCSV, formatQuantity, loadCatalog, loadDetails, loadPlotPoints };
 });

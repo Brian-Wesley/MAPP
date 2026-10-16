@@ -5,7 +5,7 @@ Anaconda Prompt (base), from MAPP:
     python -B scripts/prepare_site.py --check
 
 Uses only MAPP files, validates the figure audit, exports lightweight interactive
-coordinates, and updates index.html image dimensions, figure counts and
+coordinates and static-script data for anonymous hosting, and updates index.html image dimensions, figure counts and
 content-hashed asset URLs. No research repository,
 network connection or third-party Python packages are required.
 """
@@ -135,6 +135,54 @@ def profile_points(root):
                       ensure_ascii=False, separators=(',', ':'), allow_nan=False) + '\n'
 
 
+def static_data_scripts(root):
+    """Classic-script data assets for hosts that sandbox pages to opaque origins.
+
+    These contain only the same public JSON data. Details are loaded lazily in
+    ISO-initial chunks, rather than downloading every language on page load.
+    """
+    root = Path(root)
+    manifest = read(root / 'data/manifest.json')
+    rows = read(local_file(root / 'data', manifest['files']['index']))
+    def assignment(target, value):
+        payload = json.dumps(value, ensure_ascii=False, separators=(',', ':'), allow_nan=False)
+        return f'{target}=JSON.parse({json.dumps(payload)});\n'
+    yield 'catalog.js', assignment('globalThis.MappStaticCatalog', {
+        'manifest': manifest,
+        'clusters': read(local_file(root / 'data', manifest['files']['clusters'])),
+        'index': rows,
+        'points': json.loads(profile_points(root)),
+    })
+    for initial in sorted({row['code'][0] for row in rows}):
+        details = {}
+        for row in rows:
+            if row['code'][0] != initial:
+                continue
+            relative = re.sub(r'(^|/)(con|prn|aux|nul|com[1-9]|lpt[1-9])\.json$', r'\1iso-\2.json', row['details'])
+            detail = read(local_file(root / 'data', relative))
+            require(all(detail[key] == row[key] for key in ('code', 'name', 'family', 'regime')),
+                    f'Detail identity mismatch: {row["code"]}')
+            for stage in ('pretrain', 'posttrain'):
+                require(all(detail[stage][key] == row[stage][key] for key in ('cluster', 'status', 'quantity')),
+                        f'Detail/index mismatch: {row["code"]} {stage}')
+            details[row['code']] = detail
+        yield f'details-{initial}.js', ('globalThis.MappStaticDetails=globalThis.MappStaticDetails||{};\n' +
+            assignment(f'globalThis.MappStaticDetails.{initial}', {'data_version': manifest['data_version'], 'languages': details}))
+
+
+def prepare_static_data(root, check=False):
+    folder = Path(root) / 'assets/static-data'
+    if not check:
+        folder.mkdir(exist_ok=True)
+    for name, content in static_data_scripts(root):
+        path = folder / name
+        if check:
+            require(path.is_file() and path.read_text(encoding='utf-8') == content,
+                    f'Static data needs syncing: {name}. Run python -B scripts/prepare_site.py')
+        elif not path.is_file() or path.read_text(encoding='utf-8') != content:
+            path.write_text(content, encoding='utf-8', newline='\n')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--check', action='store_true', help='Verify the page is synchronized, without modifying it')
@@ -145,6 +193,7 @@ def main():
         points = profile_points(ROOT)
         points_file = ROOT / 'assets/resource-profile-points.json'
         index = ROOT / 'index.html'
+        prepare_static_data(ROOT, check=args.check)
         if args.check:
             require(index.read_text(encoding='utf-8') == html, 'Page needs syncing. Run python -B scripts/prepare_site.py')
             require(points_file.read_text(encoding='utf-8') == points, 'Interactive points need syncing. Run python -B scripts/prepare_site.py')

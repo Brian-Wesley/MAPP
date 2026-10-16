@@ -183,9 +183,7 @@
       errorBox.hidden = true;
       try {
         catalog = await window.MappData.loadCatalog();
-        const response = await window.fetch(`assets/resource-profile-points.json?v=${encodeURIComponent(catalog.manifest.data_version)}`, { cache: 'no-cache' });
-        if (!response.ok) throw new Error(`Plot request failed (${response.status}).`);
-        layout = layoutPoints(parsePoints(await response.json(), catalog));
+        layout = layoutPoints(parsePoints(await window.MappData.loadPlotPoints(), catalog));
         draw();
         update(window.MappExplorer.getState());
         host.hidden = false;

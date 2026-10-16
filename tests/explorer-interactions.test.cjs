@@ -62,6 +62,7 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   let downloaded;
   const window = { MappData: { ...data, loadCatalog: async () => catalog, loadDetails: async code => { detailRequests.push(code); return json(`languages/${code}.json`); } } };
   window.getSelection = () => null;
+  window.MappData.loadPlotPoints = async () => JSON.parse(read('assets/resource-profile-points.json'));
   const context = vm.createContext({ window, document, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } }, Blob, URL: { createObjectURL(blob) { downloaded = blob; return 'blob:test'; }, revokeObjectURL() {} }, setTimeout() {} });
   vm.runInContext(read('assets/language-explorer.js'), context);
   vm.runInContext(read('assets/language-browser.js'), context);
