@@ -180,7 +180,7 @@
         .browse-tab { flex: 1 1 100%; text-align: left; }
       }
     </style>
-    <link rel="stylesheet" href="assets/language-explorer.css?v=8f1075f73bbe">
+    <link rel="stylesheet" href="assets/language-explorer.css?v=f430f58413a5">
   </head>
   <body>
     <main>
@@ -227,9 +227,6 @@
               <div id="explorer-message" role="status"><p>Loading language data…</p></div>
               <fieldset class="explorer-controls" id="explorer-controls" disabled>
                 <legend class="visually-hidden">Filter languages</legend>
-                <div class="explorer-search-row">
-                  <label class="explorer-search"><span class="visually-hidden">Search language name or ISO code</span><input type="search" id="explorer-search" placeholder="Search language name or ISO code…" autocomplete="off"></label>
-                </div>
                 <div class="explorer-toolbar">
                   <label><span>Family</span><select id="explorer-family"><option value="">All families</option></select></label>
                   <label><span>ISO_scope</span><select id="explorer-iso-scope"><option value="">All</option></select></label>
@@ -238,6 +235,7 @@
                   <button type="button" id="explorer-more" aria-expanded="false" aria-controls="explorer-extra">More filters</button>
                 </div>
                 <div class="explorer-sort">
+                  <label class="explorer-search"><span class="visually-hidden">Search language name or ISO code</span><input type="search" id="explorer-search" placeholder="Search language name or ISO code…" autocomplete="off"></label>
                   <label for="explorer-sort">Sort by:</label>
                   <select id="explorer-sort">
                     <option value="name:asc">Language: A–Z</option><option value="name:desc">Language: Z–A</option>

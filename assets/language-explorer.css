@@ -28,7 +28,7 @@
 .explorer-sort select { max-width: 100%; }
 .group-matching { margin: -4px 0 14px; color: #526271; font-size: 0.8rem; }
 .group-filter-note { margin: 0 0 20px; color: #526271; font-size: 0.8rem; line-height: 1.6; }
-.explorer-search { display: block; width: 100%; }
+.explorer-search { display: block; flex: 1 1 280px; min-width: 0; }
 .explorer-search input { width: 100%; }
 #explorer-family { max-width: 100%; }
 .explorer-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; padding: 20px 0 4px; }
