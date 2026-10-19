@@ -20,14 +20,17 @@
 .explorer-selection { margin-bottom: 20px; }
 .explorer-selection p { margin: 0; flex: 1; line-height: 1.6; }
 .explorer-controls { min-width: 0; margin: 0; padding: 0; border: 0; }
-.explorer-toolbar { display: flex; flex-wrap: wrap; gap: 10px; }
+.explorer-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-top: 12px; }
+.explorer-toolbar > label { display: flex; flex: 1 1 150px; min-width: 0; flex-direction: column; gap: 6px; color: #526271; font-size: 0.8rem; }
+.explorer-toolbar select { width: 100%; min-width: 0; }
+.explorer-toolbar > button { flex-shrink: 0; }
 .explorer-sort { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; font-size: 0.85rem; color: #526271; }
 .explorer-sort select { max-width: 100%; }
 .group-matching { margin: -4px 0 14px; color: #526271; font-size: 0.8rem; }
 .group-filter-note { margin: 0 0 20px; color: #526271; font-size: 0.8rem; line-height: 1.6; }
-.explorer-search { flex: 1 1 280px; }
+.explorer-search { display: block; width: 100%; }
 .explorer-search input { width: 100%; }
-#explorer-family { max-width: 235px; }
+#explorer-family { max-width: 100%; }
 .explorer-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; padding: 20px 0 4px; }
 .explorer-extra label { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: #526271; }
 .explorer-extra select { width: 100%; }

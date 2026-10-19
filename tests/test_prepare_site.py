@@ -1,6 +1,8 @@
 """Verify the actual published snapshot, without requiring the research repo."""
 import importlib.util
 import json
+import csv
+import tempfile
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -12,6 +14,39 @@ spec.loader.exec_module(site)
 
 
 class SiteTests(unittest.TestCase):
+    def test_metadata_snapshot_covers_the_website_index(self):
+        metadata = site.filter_metadata(ROOT)
+        rows = site.read(ROOT / 'data/languages.json')
+        self.assertEqual(set(metadata['languages']), {row['code'] for row in rows})
+        self.assertEqual(metadata['languages']['ara'], ['Macrolanguage', 'Living', 'no canonical Glottolog match'])
+
+    def test_metadata_import_reuses_columns_and_rejects_stage_disagreement(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'data').mkdir()
+            (root / 'data/manifest.json').write_text(json.dumps({'data_version': 'test', 'files': {'index': 'languages.json'}}), encoding='utf-8')
+            (root / 'data/languages.json').write_text(json.dumps([{'code': 'eng'}, {'code': 'ara'}]), encoding='utf-8')
+            records = [['eng', 'Individual language', 'Living', 'genetic family'], ['ara', 'Macrolanguage', 'Living', '']]
+            def write_stage(stage, values):
+                folder = root / f'meta_data_{stage}_joined'
+                folder.mkdir(exist_ok=True)
+                with (folder / 'genealogical_family_analysis_joined.csv').open('w', encoding='utf-8', newline='') as stream:
+                    writer = csv.writer(stream)
+                    writer.writerow(['Language', 'ISO_scope', 'ISO_language_type', 'classification_status'])
+                    writer.writerows(values)
+            for stage in ('pretrain', 'posttrain'):
+                write_stage(stage, records)
+            imported = site.import_filter_metadata(root, root)
+            self.assertEqual(imported['languages']['eng'], records[0][1:])
+            self.assertIsNone(imported['languages']['ara'][2])
+            self.assertEqual(len(imported['sources_sha256']), 2)
+            write_stage('posttrain', [records[0], ['ara', 'Macrolanguage', 'Living', 'genetic family']])
+            with self.assertRaisesRegex(ValueError, 'disagree'):
+                site.import_filter_metadata(root, root)
+            write_stage('posttrain', [records[0]])
+            with self.assertRaisesRegex(ValueError, 'missing website languages'):
+                site.import_filter_metadata(root, root)
+
     def test_page_is_synchronized_and_sync_is_idempotent(self):
         actual = (ROOT / 'index.html').read_text(encoding='utf-8')
         self.assertEqual(site.prepared_html(ROOT), actual)

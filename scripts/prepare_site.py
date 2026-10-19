@@ -4,6 +4,11 @@ Anaconda Prompt (base), from MAPP:
     python -B scripts/prepare_site.py
     python -B scripts/prepare_site.py --check
 
+To refresh Explorer metadata from existing join_language_clusters.py outputs:
+    python -B scripts/prepare_site.py --metadata-source-root <research repository>
+Only ISO_scope, ISO_language_type and classification_status are imported. The
+saved data/explorer-filters.json is reused by subsequent local-only runs.
+
 Uses only MAPP files, validates the figure audit, exports lightweight interactive
 coordinates and static-script data for anonymous hosting, and updates index.html image dimensions, figure counts and
 content-hashed asset URLs. No research repository,
@@ -11,6 +16,7 @@ network connection or third-party Python packages are required.
 """
 
 import argparse
+import csv
 from collections import Counter
 import hashlib
 import json
@@ -20,6 +26,8 @@ import re
 import struct
 
 ROOT = Path(__file__).resolve().parents[1]
+FILTER_COLUMNS = {'iso_scope': 'ISO_scope', 'iso_language_type': 'ISO_language_type',
+                  'classification_status': 'classification_status'}
 
 
 def portable_details(root, check=False):
@@ -108,6 +116,8 @@ def prepared_html(root):
     width, height = struct.unpack('>II', png[16:24])
     html = (root / 'index.html').read_text(encoding='utf-8')
     html = attribute(html, 'resource-profiles-figure', 'data-version', audit['data_version'])
+    if (assets / 'static-data/catalog.js').is_file():
+        html = attribute(html, 'resource-profiles-figure', 'data-static-version', sha(assets / 'static-data/catalog.js')[:12])
     html = attribute(html, 'resource-profiles-image', 'width', width)
     html = attribute(html, 'resource-profiles-image', 'height', height)
     html = attribute(html, 'resource-profiles-image', 'alt',
@@ -135,6 +145,48 @@ def profile_points(root):
                       ensure_ascii=False, separators=(',', ':'), allow_nan=False) + '\n'
 
 
+def filter_metadata(root):
+    """Validate the locally saved metadata snapshot without a research checkout."""
+    root = Path(root)
+    manifest = read(root / 'data/manifest.json')
+    rows = read(local_file(root / 'data', manifest['files']['index']))
+    metadata = read(root / 'data/explorer-filters.json')
+    require(metadata['data_version'] == manifest['data_version'],
+            'Filter metadata version differs. Run prepare_site.py --metadata-source-root <research repository>.')
+    require(metadata['fields'] == list(FILTER_COLUMNS), 'Unexpected filter metadata fields')
+    require(set(metadata['languages']) == {row['code'] for row in rows}, 'Filter metadata language coverage differs')
+    require(all(isinstance(values, list) and len(values) == len(FILTER_COLUMNS) and
+                all(value is None or isinstance(value, str) and value.strip() for value in values)
+                for values in metadata['languages'].values()), 'Invalid filter metadata values')
+    return metadata
+
+
+def import_filter_metadata(root, source_root):
+    """Reuse the three columns already produced by join_language_clusters.py."""
+    root, source_root = Path(root), Path(source_root)
+    manifest = read(root / 'data/manifest.json')
+    rows = read(local_file(root / 'data', manifest['files']['index']))
+    codes = {row['code'] for row in rows}
+    stages, sources = [], {}
+    for stage in ('pretrain', 'posttrain'):
+        relative = f'meta_data_{stage}_joined/genealogical_family_analysis_joined.csv'
+        path = source_root / relative
+        with path.open(encoding='utf-8-sig', newline='') as stream:
+            reader = csv.DictReader(stream)
+            require({'Language', *FILTER_COLUMNS.values()} <= set(reader.fieldnames or []), f'Missing metadata columns: {relative}')
+            indexed = {}
+            for row in reader:
+                code = row['Language'].strip().lower()
+                require(re.fullmatch('[a-z]{3}', code) and code not in indexed, f'Invalid or duplicate language: {relative}: {code}')
+                indexed[code] = [row[column].strip() or None for column in FILTER_COLUMNS.values()]
+        require(codes <= indexed.keys(), f'Metadata missing website languages: {relative}')
+        stages.append({code: indexed[code] for code in sorted(codes)})
+        sources[relative] = sha(path)
+    require(stages[0] == stages[1], 'Pre-training and post-training language metadata disagree')
+    return {'data_version': manifest['data_version'], 'fields': list(FILTER_COLUMNS),
+            'sources_sha256': sources, 'languages': stages[0]}
+
+
 def static_data_scripts(root):
     """Classic-script data assets for hosts that sandbox pages to opaque origins.
 
@@ -151,6 +203,7 @@ def static_data_scripts(root):
         'manifest': manifest,
         'clusters': read(local_file(root / 'data', manifest['files']['clusters'])),
         'index': rows,
+        'filter_metadata': filter_metadata(root),
         'points': json.loads(profile_points(root)),
     })
     for initial in sorted({row['code'][0] for row in rows}):
@@ -186,6 +239,8 @@ def prepare_static_data(root, check=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--check', action='store_true', help='Verify the page is synchronized, without modifying it')
+    parser.add_argument('--metadata-source-root', type=Path,
+                        help='Import the three Explorer fields from existing join_language_clusters.py CSV outputs')
     args = parser.parse_args()
     try:
         portable_details(ROOT, check=args.check)
@@ -193,7 +248,16 @@ def main():
         points = profile_points(ROOT)
         points_file = ROOT / 'assets/resource-profile-points.json'
         index = ROOT / 'index.html'
+        metadata_file = ROOT / 'data/explorer-filters.json'
+        if args.metadata_source_root:
+            metadata = json.dumps(import_filter_metadata(ROOT, args.metadata_source_root), ensure_ascii=False, separators=(',', ':'), allow_nan=False) + '\n'
+            if args.check:
+                require(metadata_file.is_file() and metadata_file.read_text(encoding='utf-8') == metadata, 'Filter metadata needs importing')
+            else:
+                metadata_file.write_text(metadata, encoding='utf-8', newline='\n')
+        filter_metadata(ROOT)
         prepare_static_data(ROOT, check=args.check)
+        html = prepared_html(ROOT)
         if args.check:
             require(index.read_text(encoding='utf-8') == html, 'Page needs syncing. Run python -B scripts/prepare_site.py')
             require(points_file.read_text(encoding='utf-8') == points, 'Interactive points need syncing. Run python -B scripts/prepare_site.py')

@@ -7,7 +7,8 @@ const read = file => JSON.parse(fs.readFileSync(path.join(__dirname, '../data', 
 const manifest = read('manifest.json');
 const clusters = read('clusters.json');
 const index = read('languages.json');
-const catalog = data.parseCatalog(manifest, clusters, index);
+const metadata = read('explorer-filters.json');
+const catalog = data.parseCatalog(manifest, clusters, index, metadata);
 
 test('Windows-reserved ISO detail paths resolve to portable publication filenames', () => {
   for (const code of ['con', 'prn']) {
@@ -127,7 +128,7 @@ test('catalog requests are shared and detail data loads on demand with retry', a
   try {
     const [first, second] = await Promise.all([data.loadCatalog(), data.loadCatalog()]);
     assert.equal(first, second);
-    assert.equal(calls.length, 3);
+    assert.equal(calls.length, 4);
     assert.ok(calls.slice(1).every(url => url.endsWith(`?v=${manifest.data_version}`)));
     const areare = await data.loadDetails('alu');
     assert.equal(areare.name, "'Are'are");
@@ -144,4 +145,24 @@ test('catalog requests are shared and detail data loads on demand with retry', a
   } finally {
     global.fetch = previousFetch;
   }
+});
+
+test('metadata filters retain upstream labels and combine with search, family and saved groups', () => {
+  assert.deepEqual(catalog.metadataOptions.iso_scope, ['Individual language', 'Macrolanguage']);
+  assert.deepEqual(catalog.metadataOptions.iso_language_type, ['Living']);
+  assert.equal(catalog.metadataOptions.classification_status.length, 12);
+  for (const field of data.METADATA_FIELDS) {
+    for (const value of catalog.metadataOptions[field]) {
+      assert.deepEqual(data.filterLanguages(catalog.languages, { [field]: value }).map(row => row.code),
+        index.filter(row => metadata.languages[row.code][data.METADATA_FIELDS.indexOf(field)] === value).map(row => row.code));
+    }
+  }
+  assert.equal(data.filterLanguages(catalog.languages, { iso_scope: 'Macrolanguage' }).length, 62);
+  assert.deepEqual(data.filterLanguages(catalog.languages, { search: 'eng', family: 'Indo-European', regime: 'refine-both-stages', iso_scope: 'Individual language', iso_language_type: 'Living', classification_status: 'genetic family' }).map(row => row.code), ['eng']);
+  assert.equal(data.filterLanguages(catalog.languages, { search: 'eng', classification_status: 'isolate' }).length, 0);
+  const unknown = structuredClone(metadata);
+  unknown.languages.eng[2] = null;
+  const withUnknown = data.parseCatalog(manifest, clusters, index, unknown);
+  assert.deepEqual(data.filterLanguages(withUnknown.languages, { classification_status: data.UNKNOWN_METADATA }).map(row => row.code), ['eng']);
+  assert.throws(() => data.parseCatalog(manifest, clusters, index, { ...metadata, data_version: 'old' }), /versions differ/);
 });

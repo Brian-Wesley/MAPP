@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const data = require('../assets/language-data.js');
 const read = file => fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
 const json = file => JSON.parse(read(`data/${data.resolveDataPath(file)}`));
-const catalog = data.parseCatalog(json('manifest.json'), json('clusters.json'), json('languages.json'));
+const catalog = data.parseCatalog(json('manifest.json'), json('clusters.json'), json('languages.json'), json('explorer-filters.json'));
 class Element {
   constructor(tag) { this.tag = tag; this.children = []; this.attributes = {}; this.events = {}; this.dataset = {}; this.style = {}; this.value = ''; this.disabled = false; }
   set textContent(value) { this.text = String(value); this.children = []; }
@@ -239,4 +239,27 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   assert.ok(!dialogContent.textContent.includes('English (eng)'));
   dialog.close();
   window.MappData.loadDetails = realLoadDetails;
+  // All metadata filters combine with the full index, shared plot and CSV.
+  find('clear').click();
+  find('iso-scope').value = 'Individual language';
+  find('iso-scope').dispatchEvent({ type: 'change' });
+  find('iso-language-type').value = 'Living';
+  find('iso-language-type').dispatchEvent({ type: 'change' });
+  find('classification-status').value = 'isolate';
+  find('classification-status').dispatchEvent({ type: 'change' });
+  const isolates = catalog.languages.filter(row => row.iso_scope === 'Individual language' && row.iso_language_type === 'Living' && row.classification_status === 'isolate');
+  assert.deepEqual(Array.from(window.MappExplorer.getState().codes).sort(), isolates.map(row => row.code).sort());
+  assert.match(find('selected').textContent, /ISO_scope: Individual language/);
+  assert.match(find('selected').textContent, /classification_status: isolate/);
+  assert.equal(find('more').textContent, 'More filters');
+  find('download').click();
+  assert.equal((await downloaded.text()).split('\r\n').length, isolates.length + 1);
+  const isolateCodes = new Set(isolates.map(row => row.code));
+  assert.equal(dots.filter(dot => dot.dataset.matching === 'true').length, dots.filter(dot => isolateCodes.has(dot.dataset.code)).length);
+  find('search').value = 'hru';
+  find('search').dispatchEvent({ type: 'input' });
+  assert.equal(find('count').textContent, 'Showing matching languages: 1');
+  find('clear').click();
+  for (const id of ['iso-scope', 'iso-language-type', 'classification-status']) assert.equal(find(id).value, '');
+  assert.equal(find('selected').textContent, 'All languages');
 });

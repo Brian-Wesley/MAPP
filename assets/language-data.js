@@ -8,6 +8,8 @@
   const STAGES = ['pretrain', 'posttrain'];
   const STATUSES = ['clustered', 'uncovered', 'quantity_unavailable'];
   const UNKNOWN_FAMILY = '__unknown__';
+  const METADATA_FIELDS = ['iso_scope', 'iso_language_type', 'classification_status'];
+  const UNKNOWN_METADATA = '__unknown__';
   const collator = new Intl.Collator('en', { sensitivity: 'base' });
   const regimeNames = {
     'expand-pre-training': 'Expand pre-training',
@@ -19,7 +21,7 @@
     other: 'Other cluster combination',
   };
   const statusNames = { clustered: 'Clustered', uncovered: 'Not covered', quantity_unavailable: 'Quantity unavailable' };
-  const emptyFilters = () => ({ search: '', family: '', regime: '', pretrainCluster: '', posttrainCluster: '', pretrainStatus: '', posttrainStatus: '' });
+  const emptyFilters = () => ({ search: '', family: '', iso_scope: '', iso_language_type: '', classification_status: '', regime: '', pretrainCluster: '', posttrainCluster: '', pretrainStatus: '', posttrainStatus: '' });
   const normalizeText = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('en');
   const compareNames = (a, b) => collator.compare(a.name, b.name) || a.code.localeCompare(b.code);
   const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
@@ -37,10 +39,15 @@
     requireValue(value.cluster === -1 ? value.quantity === null : value.quantity > 0, `${label}: cluster/quantity mismatch.`);
     return { cluster: value.cluster, status: value.status, quantity: value.quantity };
   }
-  function parseCatalog(manifest, clusters, index) {
+  function parseCatalog(manifest, clusters, index, metadata) {
     requireValue(manifest?.schema_version === SCHEMA, 'Unsupported language data schema.');
     requireValue(Array.isArray(index) && index.length === manifest.language_count, 'Language index count does not match the manifest.');
     requireValue(Array.isArray(clusters?.regimes), 'Missing regime definitions.');
+    if (metadata) {
+      requireValue(metadata.data_version === manifest.data_version, 'Filter metadata and catalog versions differ.');
+      requireValue(JSON.stringify(metadata.fields) === JSON.stringify(METADATA_FIELDS), 'Unsupported filter metadata fields.');
+      requireValue(metadata.languages && Object.keys(metadata.languages).length === index.length, 'Filter metadata count mismatch.');
+    }
     const definitions = new Map(clusters.regimes.map(group => [group.id, group]));
     const codes = new Set();
     const issues = { missingFamily: 0, quantityUnavailable: { pretrain: 0, posttrain: 0 } };
@@ -58,7 +65,9 @@
       requireValue(raw.details === manifest.files.detail_template.replace('{code}', raw.code), `${raw.code}: inconsistent detail path.`);
       if (raw.family === null) issues.missingFamily++;
       for (const stage of STAGES) if (raw[stage].status === 'quantity_unavailable') issues.quantityUnavailable[stage]++;
-      return { code: raw.code, name: raw.name, family: raw.family, pretrain, posttrain, regime: raw.regime, details: raw.details, searchText: normalizeText(`${raw.name} ${raw.code}`) };
+      const values = metadata ? metadata.languages[raw.code] : METADATA_FIELDS.map(field => raw[field] ?? raw[field.replace(/^iso_/, 'ISO_')] ?? null);
+      requireValue(Array.isArray(values) && values.length === METADATA_FIELDS.length && values.every(value => value === null || (typeof value === 'string' && value.trim())), `${raw.code}: invalid filter metadata.`);
+      return { code: raw.code, name: raw.name, family: raw.family, ...Object.fromEntries(METADATA_FIELDS.map((field, position) => [field, values[position]])), pretrain, posttrain, regime: raw.regime, details: raw.details, searchText: normalizeText(`${raw.name} ${raw.code}`) };
     });
     for (const stage of STAGES) {
       requireValue(Array.isArray(clusters[stage]), `Missing ${stage} summaries.`);
@@ -67,7 +76,8 @@
       }
     }
     for (const group of clusters.regimes) requireValue(languages.filter(row => row.regime === group.id).length === group.n_languages, `${group.id}: regime count mismatch.`);
-    return { manifest, clusters, languages, issues, byCode: new Map(languages.map(row => [row.code, row])), families: [...new Set(languages.map(row => row.family).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'en')) };
+    const metadataOptions = Object.fromEntries(METADATA_FIELDS.map(field => [field, [...new Set(languages.map(row => row[field]).filter(value => value !== null))].sort((a, b) => a.localeCompare(b, 'en'))]));
+    return { manifest, clusters, languages, issues, metadataOptions, byCode: new Map(languages.map(row => [row.code, row])), families: [...new Set(languages.map(row => row.family).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'en')) };
   }
   function parseDetails(raw, row) {
     requireValue(raw?.code === row.code && raw.name === row.name && raw.family === row.family && raw.regime === row.regime, 'Detail identity does not match the language index.');
@@ -85,6 +95,7 @@
     return rows.filter(row => (exactCode ? row.code === query : terms.every(term => row.searchText.includes(term))) &&
       (!filters.family || (filters.family === UNKNOWN_FAMILY ? row.family === null : row.family === filters.family)) &&
       (!filters.regime || row.regime === filters.regime) &&
+      METADATA_FIELDS.every(field => !filters[field] || (filters[field] === UNKNOWN_METADATA ? row[field] === null : row[field] === filters[field])) &&
       STAGES.every(stage => (filters[`${stage}Cluster`] === '' || filters[`${stage}Cluster`] == null || row[stage].cluster === Number(filters[`${stage}Cluster`])) &&
         (!filters[`${stage}Status`] || row[stage].status === filters[`${stage}Status`])));
   }
@@ -146,8 +157,10 @@
   }
   function loadStaticCatalog() {
     if (!staticCatalogPromise) staticCatalogPromise = (async () => {
-      const version = document.getElementById('resource-profiles-figure')?.dataset.version || '';
-      await loadStaticScript(`assets/static-data/catalog.js?v=${encodeURIComponent(version)}`);
+      const figure = document.getElementById('resource-profiles-figure');
+      const version = figure?.dataset.version || '';
+      const assetVersion = figure?.dataset.staticVersion || version;
+      await loadStaticScript(`assets/static-data/catalog.js?v=${encodeURIComponent(assetVersion)}`);
       const bundle = globalThis.MappStaticCatalog;
       requireValue(bundle?.manifest?.data_version && bundle.points?.data_version === bundle.manifest.data_version,
         'Static catalog and plot versions differ.');
@@ -200,13 +213,14 @@
     if (!catalogPromise) catalogPromise = (async () => {
       if (needsStaticScripts()) {
         const bundle = await loadStaticCatalog();
-        return parseCatalog(bundle.manifest, bundle.clusters, bundle.index);
+        requireValue(bundle.filter_metadata, 'Static filter metadata is missing. Regenerate the site data.');
+        return parseCatalog(bundle.manifest, bundle.clusters, bundle.index, bundle.filter_metadata);
       }
       const manifest = await readJSON('manifest.json');
       requireValue(manifest.schema_version === SCHEMA, 'Unsupported language data schema.');
       requireValue(typeof manifest.data_version === 'string' && manifest.data_version.length > 0, 'Missing export version.');
-      const [clusters, index] = await Promise.all([readJSON(manifest.files.clusters, manifest.data_version), readJSON(manifest.files.index, manifest.data_version)]);
-      return parseCatalog(manifest, clusters, index);
+      const [clusters, index, metadata] = await Promise.all([readJSON(manifest.files.clusters, manifest.data_version), readJSON(manifest.files.index, manifest.data_version), readJSON('explorer-filters.json', manifest.data_version)]);
+      return parseCatalog(manifest, clusters, index, metadata);
     })().catch(error => { catalogPromise = null; throw error; });
     return catalogPromise;
   }
@@ -227,5 +241,5 @@
     if (!response.ok) throw new Error(`Plot request failed (${response.status}).`);
     return response.json();
   }
-  return { SCHEMA, STAGES, STATUSES, UNKNOWN_FAMILY, regimeNames, statusNames, emptyFilters, resolveDataPath: safePath, parseCatalog, parseDetails, filterLanguages, sortLanguages, paginate, toCSV, formatQuantity, loadCatalog, loadDetails, loadPlotPoints };
+  return { SCHEMA, STAGES, STATUSES, UNKNOWN_FAMILY, METADATA_FIELDS, UNKNOWN_METADATA, regimeNames, statusNames, emptyFilters, resolveDataPath: safePath, parseCatalog, parseDetails, filterLanguages, sortLanguages, paginate, toCSV, formatQuantity, loadCatalog, loadDetails, loadPlotPoints };
 });

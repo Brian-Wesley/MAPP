@@ -13,10 +13,12 @@
   const state = { catalog: null, filters: data.emptyFilters(), sortKey: 'name', sortDirection: 'asc', page: 1, pageSize: 25, matches: [] };
   const inputs = {
     search: find('search'), family: find('family'), regime: find('regime'),
+    iso_scope: find('iso-scope'), iso_language_type: find('iso-language-type'), classification_status: find('classification-status'),
     pretrainCluster: find('pretrain-cluster'), posttrainCluster: find('posttrain-cluster'),
     pretrainStatus: find('pretrain-status'), posttrainStatus: find('posttrain-status'),
   };
   const number = value => value.toLocaleString('en-US');
+  const metadataLabels = { iso_scope: 'ISO_scope', iso_language_type: 'ISO_language_type', classification_status: 'classification_status' };
   function node(tag, text, className) {
     const item = document.createElement(tag);
     if (text !== undefined) item.textContent = text;
@@ -46,6 +48,9 @@
       if (filters[`${stage}Status`]) entries.push([`${label} availability`, data.statusNames[filters[`${stage}Status`]]]);
     }
     if (filters.family) entries.push(['family', filters.family === data.UNKNOWN_FAMILY ? 'Unknown family' : filters.family]);
+    for (const field of data.METADATA_FIELDS) {
+      if (filters[field]) entries.push([metadataLabels[field], filters[field] === data.UNKNOWN_METADATA ? 'Unknown' : filters[field]]);
+    }
     if (filters.search.trim()) entries.push(['search', filters.search.trim()]);
     const selected = find('selected');
     selected.replaceChildren(entries.length === 0 ? 'All languages' : entries.length === 1 ? `Selected ${entries[0][0]}: ` : 'Selected filters: ');
@@ -55,7 +60,7 @@
       selected.append(node('strong', value));
     });
     find('clear').disabled = entries.length === 0;
-    const extraCount = Object.keys(inputs).filter(key => !['search', 'family'].includes(key) && filters[key] !== '').length;
+    const extraCount = ['regime', 'pretrainCluster', 'posttrainCluster', 'pretrainStatus', 'posttrainStatus'].filter(key => filters[key] !== '').length;
     find('more').textContent = extraCount ? `More filters (${extraCount})` : 'More filters';
   }
   function stageCell(stage, value) {
@@ -301,6 +306,12 @@
       state.catalog = await data.loadCatalog();
       root.dataset.dataVersion = state.catalog.manifest.data_version;
       inputs.family.replaceChildren(option('', 'All families'), ...state.catalog.families.map(family => option(family, family)), option(data.UNKNOWN_FAMILY, 'Unknown family'));
+      for (const field of data.METADATA_FIELDS) {
+        const values = state.catalog.metadataOptions[field];
+        inputs[field].replaceChildren(option('', values.length ? 'All' : 'Not available'), ...values.map(value => option(value, value)));
+        if (values.length && state.catalog.languages.some(row => row[field] === null)) inputs[field].append(option(data.UNKNOWN_METADATA, 'Unknown'));
+        inputs[field].disabled = values.length === 0;
+      }
       inputs.regime.replaceChildren(option('', 'All regimes'), ...state.catalog.clusters.regimes.map(group => option(group.id, data.regimeNames[group.id] || group.name)));
       find('controls').disabled = false;
       find('page-size').disabled = false;
