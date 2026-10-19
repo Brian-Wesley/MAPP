@@ -131,7 +131,7 @@
         if (row.language_count !== null && row.language_count_partial) { const note = node('span', 'Partial'); note.className = 'catalog-partial'; languages.append(note); }
         tr.append(name, date, quantity, languages,
           listCell(row.tasks.map(task => catalog.task_names[task] || task)), listCell(row.sources),
-          linkCell(row.dataset_links, 'Link', row.name), linkCell(row.paper_links, '论文', row.name));
+          linkCell(row.dataset_links, 'Link', row.name), linkCell(row.paper_links, 'Link', row.name));
         body.append(tr);
       }
       if (!rows.length) { const row = node('tr'), cell = node('td', 'No collections match your search.'); cell.colSpan = 8; row.append(cell); body.append(row); }
