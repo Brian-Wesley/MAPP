@@ -14,37 +14,59 @@ spec.loader.exec_module(site)
 
 
 class SiteTests(unittest.TestCase):
-    def test_dataset_catalog_aggregates_collections_from_the_snapshot(self):
+    def test_dataset_catalog_includes_the_full_original_inventory(self):
         catalog = site.dataset_catalog(ROOT)
-        manifest = site.read(ROOT / 'data/manifest.json')
-        for stage, rows in catalog['stages'].items():
-            self.assertEqual(len(rows), manifest['counts'][stage]['collections'])
+        for stage, expected in [('pretrain', 36), ('posttrain', 188)]:
+            rows = catalog['stages'][stage]
+            self.assertEqual(len(rows), expected)
             self.assertEqual(len(rows), len({row['name'] for row in rows}))
-            self.assertEqual(sum(row['dataset_count'] for row in rows), manifest['counts'][stage]['datasets'])
+        pre = {row['name'] for row in catalog['stages']['pretrain']}
+        self.assertTrue({'CC100-XL', 'DCLM-Pool', 'HPLT_v2.0'} <= pre)
+        post = {row['name'] for row in catalog['stages']['posttrain']}
+        self.assertTrue({'Alpaca', 'OpenMathInstruct-1', 'OpenCodeReasoning'} <= post)
         aya = [row for row in catalog['stages']['posttrain'] if row['name'] == 'Aya Dataset']
         self.assertEqual(len(aya), 1)
-        self.assertEqual(aya[0]['language_count'], 70)
-        self.assertEqual(aya[0]['paper_years'], [2024])
+        self.assertEqual(aya[0]['release_date'], '2024-01-31')
+        self.assertEqual(aya[0]['date_sources'], ['HF Date'])
         self.assertIn('https://arxiv.org/abs/2402.06619', aya[0]['paper_links'])
+        self.assertEqual(sum(row['release_date'] is not None for row in catalog['stages']['posttrain']), 181)
         site.prepare_dataset_catalog(ROOT, check=True)
 
-    def test_collection_quantities_sum_allocations_without_deduplicating_them(self):
-        def record(quantity):
-            return {'collection': 'Example', 'id': 'shared', 'quantity': quantity, 'tasks': ['QA'], 'sources': ['Human-Created']}
-        def fake_read(path):
-            if path.name == 'manifest.json':
-                return {'counts': {'pretrain': {'collections': 0}, 'posttrain': {'collections': 1}}}
-            if path.name == 'languages.json':
-                return [{'code': code, 'details': f'languages/{code}.json'} for code in ['eng', 'fra']]
-            parts = [record(10), record(10)] if path.stem == 'eng' else [record(5), record(None)]
-            return {'pretrain': {'datasets': []}, 'posttrain': {'datasets': parts}}
-        with patch.object(site, 'read', side_effect=fake_read):
-            group = site.collection_groups(ROOT)['posttrain']['Example']
-        self.assertEqual(sum(group['quantities']), 25)
-        self.assertEqual(group['missing'], 1)
-        self.assertEqual(group['ids'], {'shared'})
-        self.assertEqual(group['codes'], {'eng', 'fra'})
+    def test_original_collection_import_counts_each_multilingual_record_once(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / 'tmp') as temporary:
+            source = Path(temporary)
+            record = {'Collection': 'Example', 'Languages': ['eng', 'fra'],
+                      'Text Metrics': {'Num Unicode Characters': 100, 'Num Dialogs': 10},
+                      'Task Macro Categories': ['QA'], 'Text Source Categories': ['Human-Created'],
+                      'Inferred Metadata': {'HF Date': '2024-01-31', 'Last Modified': '2025-01-01'}}
+            missing = {**record, 'Languages': [], 'Text Metrics': {}}
+            for stage in ['pretrain', 'posttrain']:
+                folder = source / f'meta_data_{stage}'
+                folder.mkdir()
+                (folder / 'different-filename.json').write_text(json.dumps({'shared': record, 'missing': missing}), encoding='utf-8')
+            imported = site.import_collection_metadata(ROOT, source)
+            pre = imported['stages']['pretrain']['Example']
+            post = imported['stages']['posttrain']['Example']
+            self.assertEqual(pre['quantity'], 100)
+            self.assertEqual(post['quantity'], 10)
+            self.assertEqual(pre['language_count'], 2)
+            self.assertTrue(pre['quantity_partial'])
+            self.assertTrue(pre['language_count_partial'])
+            self.assertEqual(pre['dataset_count'], 2)
+            (source / 'meta_data_posttrain/duplicate.json').write_text(json.dumps({'shared': record}), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'Duplicate dataset ID'):
+                site.import_collection_metadata(ROOT, source)
         self.assertEqual(site.web_links(['https://example.org', 'javascript:alert(1)', None]), {'https://example.org'})
+
+    def test_collection_dates_use_nested_metadata_and_preserve_the_basis(self):
+        values = [{'Inferred Metadata': {'HF Date': '2024-01-31', 'S2 Date': '2024-02-09',
+                                         'Last Modified': '2026-01-01', 'Run Timestamp UTC': '2026-10-19'}}]
+        self.assertEqual(site.collection_date(values), {'release_date': '2024-01-31', 'date_basis': 'repository', 'date_sources': ['HF Date']})
+        values.append({'Inferred Metadata': {'Github Date': '2024-01-01'}})
+        self.assertEqual(site.collection_date(values)['release_date'], '2024-01-01')
+        self.assertEqual(site.collection_date([{'Inferred Metadata': {'Created At': '2024-06-12'}}])['release_date'], '2024-06-12')
+        self.assertEqual(site.collection_date([{'Inferred Metadata': {'S2 Date': '2023-02-10'}}])['date_basis'], 'publication')
+        self.assertIsNone(site.collection_date([{'Inferred Metadata': {'HF Date': '2024-02-30', 'Last Modified': '2026-01-01'}}])['release_date'])
 
     def test_metadata_snapshot_covers_the_website_index(self):
         metadata = site.filter_metadata(ROOT)

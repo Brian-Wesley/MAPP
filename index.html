@@ -180,7 +180,7 @@
         .browse-tab { flex: 1 1 100%; text-align: left; }
       }
     </style>
-    <link rel="stylesheet" href="assets/language-explorer.css?v=dcc42fe6c341">
+    <link rel="stylesheet" href="assets/language-explorer.css?v=a7c5c9b57b32">
   </head>
   <body>
     <main>
@@ -401,7 +401,7 @@
           </figcaption>
         </figure>
       </section>
-      <section class="figure-card explorer dataset-catalog" id="dataset-catalog" aria-labelledby="dataset-catalog-title">
+      <section class="figure-card explorer dataset-catalog" id="dataset-catalog" aria-labelledby="dataset-catalog-title" data-version="a17890c3a2cb4fad">
         <h2 id="dataset-catalog-title">Dataset Catalog</h2>
         <p class="figure-description">Explore the surveyed resources by collection. Language-specific subsets are grouped into a single dataset entry.</p>
         <div class="browse-tabs" role="tablist" aria-label="Dataset training stage">
@@ -412,13 +412,13 @@
           <div class="catalog-toolbar">
             <label class="catalog-search"><span class="visually-hidden">Search collections, tasks, or sources</span><input type="search" id="catalog-search" placeholder="Search collections, tasks, or sources…" autocomplete="off" disabled></label>
             <label for="catalog-sort">Sort by:</label>
-            <select id="catalog-sort" disabled><option value="name">Name: A–Z</option><option value="quantity">Data quantity: highest first</option><option value="language_count">Languages: most first</option><option value="year">Paper year: newest first</option></select>
+            <select id="catalog-sort" disabled><option value="name">Name: A–Z</option><option value="quantity">Data quantity: highest first</option><option value="language_count">Languages: most first</option><option value="date">Release date: newest first</option></select>
           </div>
-          <p class="table-notes" id="catalog-scope">Language counts and quantities cover the living-language inventory in this website snapshot. Quantities sum the existing per-language allocations; they are not necessarily the full original dataset size. Paper year comes from recorded bibliographic metadata, not a dataset release date. “—” indicates unavailable metadata; “Partial” marks quantities with missing contributions.</p>
+          <p class="table-notes" id="catalog-scope">All collections in the original metadata are included. Data quantities sum each constituent dataset once; language coverage counts distinct recorded labels, including programming languages. Release dates use explicit dates where available, otherwise the earliest recorded repository creation date or publication date, with the basis shown below each date. “—” means unavailable; “Partial” marks incomplete quantities or language coverage.</p>
           <p id="catalog-message" role="status">Loading dataset catalog…</p>
           <div class="table-scroll" role="region" aria-label="Dataset catalog, horizontally scrollable" tabindex="0">
             <table class="catalog-table" aria-describedby="catalog-scope">
-              <thead><tr><th scope="col">Name</th><th scope="col">Paper year</th><th scope="col" id="catalog-quantity-heading">Data quantity (NCC)</th><th scope="col">Languages</th><th scope="col">Tasks</th><th scope="col">Data sources</th><th scope="col">Dataset</th><th scope="col">Paper</th></tr></thead>
+              <thead><tr><th scope="col">Name</th><th scope="col">Release date</th><th scope="col" id="catalog-quantity-heading">Data quantity (NCC)</th><th scope="col">Languages</th><th scope="col">Tasks</th><th scope="col">Data sources</th><th scope="col">Dataset link</th><th scope="col">Article link</th></tr></thead>
               <tbody id="catalog-rows"><tr><td colspan="8">Loading collections…</td></tr></tbody>
             </table>
           </div>
@@ -442,7 +442,7 @@
     <script src="assets/language-explorer.js?v=c5b1374c08f9" defer></script>
     <script src="assets/language-browser.js?v=a31bee575ca1" defer></script>
     <script src="assets/resource-profile-chart.js?v=0970015547b4" defer></script>
-    <script id="dataset-catalog-data" src="assets/static-data/dataset-catalog.js?v=7eecb5f89e16" defer></script>
-    <script src="assets/dataset-catalog.js?v=a2e0619b8811" defer></script>
+    <script id="dataset-catalog-data" src="assets/static-data/dataset-catalog.js?v=ae632ea54604" defer></script>
+    <script src="assets/dataset-catalog.js?v=256f2d5e98dd" defer></script>
   </body>
 </html>

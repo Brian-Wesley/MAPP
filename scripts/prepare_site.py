@@ -9,10 +9,10 @@ To refresh Explorer metadata from existing join_language_clusters.py outputs:
 Only ISO_scope, ISO_language_type and classification_status are imported. The
 saved data/explorer-filters.json is reused by subsequent local-only runs.
 
-To refresh Dataset Catalog links and bibliographic years:
+To refresh the complete Dataset Catalog from original metadata:
     python -B scripts/prepare_site.py --collection-source-root <research repository>
-Saved data/collection-metadata.json is reused locally. Collection quantities,
-coverage, tasks and sources always come from the website's language snapshot.
+Saved data/collection-metadata.json is reused locally. This independent catalog
+includes all original collections, without the Language Explorer's filtering.
 
 Uses only MAPP files, validates the figure audit, exports lightweight interactive
 coordinates and static-script data for anonymous hosting, and updates index.html image dimensions, figure counts and
@@ -23,6 +23,7 @@ network connection or third-party Python packages are required.
 import argparse
 import csv
 from collections import Counter
+from datetime import date
 import hashlib
 import json
 import math
@@ -122,6 +123,7 @@ def prepared_html(root):
     require(png[:8] == b'\x89PNG\r\n\x1a\n' and png[12:16] == b'IHDR', 'Invalid PNG header')
     width, height = struct.unpack('>II', png[16:24])
     html = (root / 'index.html').read_text(encoding='utf-8')
+    html = attribute(html, 'dataset-catalog', 'data-version', read(data / 'dataset-catalog.json')['catalog_version'])
     html = attribute(html, 'resource-profiles-figure', 'data-version', audit['data_version'])
     if (assets / 'static-data/catalog.js').is_file():
         html = attribute(html, 'resource-profiles-figure', 'data-static-version', sha(assets / 'static-data/catalog.js')[:12])
@@ -243,77 +245,96 @@ def prepare_static_data(root, check=False):
             path.write_text(content, encoding='utf-8', newline='\n')
 
 
-def collection_groups(root):
-    """Aggregate allocated records, preserving the language snapshot's scope."""
-    root = Path(root)
-    manifest = read(root / 'data/manifest.json')
-    groups = {stage: {} for stage in ('pretrain', 'posttrain')}
-    for language in read(root / 'data/languages.json'):
-        relative = re.sub(r'(^|/)(con|prn|aux|nul|com[1-9]|lpt[1-9])\.json$', r'\1iso-\2.json', language['details'])
-        detail = read(local_file(root / 'data', relative))
-        for stage in groups:
-            for record in detail[stage]['datasets']:
-                name = record['collection']
-                require(isinstance(name, str) and name.strip(), 'Missing collection name')
-                group = groups[stage].setdefault(name, {'codes': set(), 'ids': set(), 'quantities': [],
-                                                       'missing': 0, 'tasks': set(), 'sources': set()})
-                group['codes'].add(language['code'])
-                group['ids'].add(record['id'])
-                # Already allocated upstream. Repeated IDs may represent separate
-                # allocations; deduplicate identity counts, never quantity parts.
-                value = record['quantity']
-                if value is None:
-                    group['missing'] += 1
-                else:
-                    require(isinstance(value, (int, float)) and math.isfinite(value) and value >= 0,
-                            f'Invalid collection quantity: {name}')
-                    group['quantities'].append(value)
-                group['tasks'].update(record['tasks'])
-                group['sources'].update(record['sources'])
-    for stage, values in groups.items():
-        require(len(values) == manifest['counts'][stage]['collections'], f'{stage}: collection count mismatch')
-    return groups
-
-
 def web_links(value):
     values = value if isinstance(value, list) else [value]
     return {item.strip() for item in values if isinstance(item, str)
             and urlsplit(item.strip()).scheme in ('http', 'https') and urlsplit(item.strip()).netloc}
 
 
+def collection_date(records):
+    """Prefer explicit release dates, then repository creation, then publication.
+
+    Keep each date's basis; never use crawl/run/last-modified timestamps.
+    """
+    tiers = [('release', ('Release Date', 'Publication Date')),
+             ('repository', ('HF Date', 'Created At', 'Github Date', 'GitHub Date')),
+             ('publication', ('S2 Date', 'PwC Date'))]
+    for basis, fields in tiers:
+        candidates = []
+        for record in records:
+            for container in (record, record.get('Inferred Metadata', {})):
+                for field in fields:
+                    value = container.get(field)
+                    if isinstance(value, str) and re.match(r'^\d{4}-\d{2}-\d{2}(?:$|T| )', value):
+                        try:
+                            candidates.append((date.fromisoformat(value[:10]).isoformat(), field))
+                        except ValueError:
+                            pass
+        if candidates:
+            earliest = min(item[0] for item in candidates)
+            return {'release_date': earliest, 'date_basis': basis,
+                    'date_sources': sorted({field for value, field in candidates if value == earliest})}
+    return {'release_date': None, 'date_basis': None, 'date_sources': []}
+
+
+def collection_version(stages, hashes):
+    payload = json.dumps({'stages': stages, 'sources_sha256': hashes}, ensure_ascii=False,
+                         sort_keys=True, separators=(',', ':'), allow_nan=False)
+    return hashlib.sha256(payload.encode('utf-8')).hexdigest()[:16]
+
+
 def import_collection_metadata(root, source_root):
-    groups = collection_groups(root)
+    # Read each original record once. Do not use filtered/reduced exports or
+    # multiply a multilingual record's quantity by its language count.
     stages, hashes = {}, {}
-    for stage, collections in groups.items():
-        matched = {name: [] for name in collections}
-        for path in sorted((Path(source_root) / f'meta_data_{stage}').glob('*.json')):
-            used = False
+    for stage in ('pretrain', 'posttrain'):
+        grouped = {}
+        paths = sorted((Path(source_root) / f'meta_data_{stage}').glob('*.json'))
+        require(paths, f'Missing original metadata: meta_data_{stage}')
+        for path in paths:
+            hashes[f'meta_data_{stage}/{path.name}'] = sha(path)
             for identifier, record in read(path).items():
                 name = record.get('Collection')
-                if name in collections and identifier in collections[name]['ids']:
-                    matched[name].append(record)
-                    used = True
-            if used:
-                hashes[f'meta_data_{stage}/{path.name}'] = sha(path)
+                require(isinstance(name, str) and name.strip(), f'Missing collection in {path.name}')
+                group = grouped.setdefault(name, {})
+                require(identifier not in group, f'Duplicate dataset ID in collection: {name}/{identifier}')
+                group[identifier] = record
         stages[stage] = {}
-        for name, records in matched.items():
-            require(records, f'No source metadata found for {stage}: {name}')
+        for name, items in sorted(grouped.items(), key=lambda item: item[0].casefold()):
+            records = list(items.values())
             dataset_links = []
             for field in ('Collection URL', 'Hugging Face URL', 'Dataset URL', 'GitHub URL'):
                 links = sorted(set().union(*(web_links(r.get(field)) for r in records)))
                 if links and not dataset_links:
                     dataset_links = links
-                # Prefer an explicitly recorded collection-wide destination to
-                # a long list of language/subset URLs, without inventing a URL.
                 if len(links) == 1:
                     dataset_links = links
                     break
             paper_links = sorted(set().union(*(web_links(r.get(field)) for r in records
-                                               for field in ('Paper URL', 'ArXiv URL'))))
-            years = sorted({int(year) for r in records for year in
-                            re.findall(r'\byear\s*=\s*[{"]?\s*((?:19|20)\d{2})\b', str(r.get('Bibtex', '')), re.I)})
-            stages[stage][name] = {'paper_years': years, 'dataset_links': dataset_links, 'paper_links': paper_links}
-    return {'data_version': read(Path(root) / 'data/manifest.json')['data_version'],
+                                               for field in ('Paper URL', 'ArXiv URL', 'Article URL', 'DOI URL'))))
+            quantities, languages, tasks, sources = [], set(), set(), set()
+            missing_quantity = missing_languages = 0
+            for record in records:
+                value = record.get('Text Metrics', {}).get('Num Unicode Characters' if stage == 'pretrain' else 'Num Dialogs')
+                if value is None:
+                    missing_quantity += 1
+                else:
+                    require(isinstance(value, (float, int)) and math.isfinite(value) and value >= 0,
+                            f'Invalid collection quantity: {name}')
+                    quantities.append(value)
+                labels = record.get('Languages', [])
+                languages.update(label.strip() for label in labels if isinstance(label, str) and label.strip())
+                missing_languages += not bool(labels)
+                tasks.update(record.get('Task Macro Categories', []))
+                sources.update(record.get('Text Source Categories', []))
+            stages[stage][name] = {'name': name, 'dataset_count': len(records),
+                'quantity': math.fsum(quantities) if quantities else None,
+                'quantity_partial': bool(missing_quantity),
+                'language_count': len(languages) if languages else None, 'language_labels': sorted(languages),
+                'language_count_partial': bool(missing_languages),
+                'tasks': sorted(tasks), 'sources': sorted(sources), **collection_date(records),
+                'dataset_links': dataset_links, 'paper_links': paper_links}
+    return {'schema_version': 'dataset-catalog/2', 'catalog_version': collection_version(stages, hashes),
             'sources_sha256': hashes, 'stages': stages}
 
 
@@ -321,22 +342,18 @@ def dataset_catalog(root):
     root = Path(root)
     manifest = read(root / 'data/manifest.json')
     metadata = read(root / 'data/collection-metadata.json')
-    require(metadata['data_version'] == manifest['data_version'],
-            'Collection metadata version differs. Refresh with --collection-source-root.')
+    require(metadata.get('schema_version') == 'dataset-catalog/2',
+            'Refresh the complete collection catalog with --collection-source-root.')
+    require(metadata['catalog_version'] == collection_version(metadata['stages'], metadata['sources_sha256']),
+            'Collection metadata checksum differs. Refresh with --collection-source-root.')
     stages = {}
-    for stage, groups in collection_groups(root).items():
-        require(set(metadata['stages'][stage]) == set(groups), f'{stage}: collection metadata coverage differs')
+    for stage, groups in metadata['stages'].items():
         stages[stage] = []
-        for name, group in sorted(groups.items(), key=lambda item: item[0].casefold()):
-            meta = metadata['stages'][stage][name]
+        for name, meta in sorted(groups.items(), key=lambda item: item[0].casefold()):
             for key in ('dataset_links', 'paper_links'):
                 require(set(meta[key]) == web_links(meta[key]), f'Invalid collection URL: {name}')
-            stages[stage].append({'name': name, 'language_count': len(group['codes']),
-                'dataset_count': len(group['ids']),
-                'quantity': math.fsum(group['quantities']) if group['quantities'] else None,
-                'quantity_partial': bool(group['missing']), 'tasks': sorted(group['tasks']),
-                'sources': sorted(group['sources']), **meta})
-    return {'data_version': manifest['data_version'], 'stages': stages,
+            stages[stage].append(meta)
+    return {'schema_version': metadata['schema_version'], 'catalog_version': metadata['catalog_version'], 'stages': stages,
             'task_names': {key: value['name'] for key, value in manifest['task_categories'].items()}}
 
 
@@ -360,7 +377,7 @@ def main():
     parser.add_argument('--metadata-source-root', type=Path,
                         help='Import the three Explorer fields from existing join_language_clusters.py CSV outputs')
     parser.add_argument('--collection-source-root', type=Path,
-                        help='Import collection links and paper years from existing meta_data_pretrain/posttrain JSON files')
+                        help='Import the full collection catalog from original meta_data_pretrain/posttrain JSON files')
     args = parser.parse_args()
     try:
         portable_details(ROOT, check=args.check)

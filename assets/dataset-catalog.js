@@ -6,6 +6,7 @@
   'use strict';
   const compare = new Intl.Collator('en', { sensitivity: 'base', numeric: true }).compare;
   const normalize = text => String(text).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const formatNCC = value => value === null ? '—' : value.toExponential(3).replace('e+', 'e');
   function selectRows(rows, query, sort, taskNames = {}) {
     const terms = normalize(query).trim().split(/\s+/).filter(Boolean);
     return rows.filter(row => {
@@ -13,10 +14,10 @@
       return terms.every(term => text.includes(term));
     }).sort((a, b) => {
       if (sort === 'name') return compare(a.name, b.name);
-      const value = row => sort === 'year' ? (row.paper_years.at(-1) ?? null) : row[sort];
+      const value = row => sort === 'date' ? row.release_date : row[sort];
       const left = value(a), right = value(b);
       if (left === null || right === null) return left === right ? compare(a.name, b.name) : left === null ? 1 : -1;
-      return right - left || compare(a.name, b.name);
+      return (typeof left === 'string' ? compare(right, left) : right - left) || compare(a.name, b.name);
     });
   }
   function init(root, document) {
@@ -78,12 +79,19 @@
       for (const row of rows.slice(offset, offset + size)) {
         const tr = node('tr'), name = node('th', row.name);
         name.scope = 'row';
-        const years = row.paper_years;
-        const year = node('td', years.length ? years.join(', ') : '—');
-        const quantity = node('td', row.quantity === null ? '—' : number(row.quantity));
+        const date = node('td', row.release_date || '—');
+        if (row.release_date) {
+          date.title = `Earliest recorded ${row.date_basis} date; source: ${row.date_sources.join(', ')}`;
+          const basis = node('small', row.date_basis === 'repository' ? 'Repository date' : row.date_basis === 'publication' ? 'Publication date' : 'Release date');
+          basis.className = 'catalog-date-basis'; date.append(basis);
+        }
+        const quantity = node('td', stage === 'pretrain' ? formatNCC(row.quantity) : row.quantity === null ? '—' : number(row.quantity));
         if (row.quantity !== null) quantity.title = `${row.quantity} ${stage === 'pretrain' ? 'NCC' : 'sample equivalents'}`;
         if (row.quantity !== null && row.quantity_partial) { const note = node('span', 'Partial'); note.className = 'catalog-partial'; quantity.append(note); }
-        tr.append(name, year, quantity, node('td', number(row.language_count)),
+        const languages = node('td', row.language_count === null ? '—' : number(row.language_count));
+        languages.title = 'Distinct language labels in the original metadata, including programming languages where recorded.';
+        if (row.language_count !== null && row.language_count_partial) { const note = node('span', 'Partial'); note.className = 'catalog-partial'; languages.append(note); }
+        tr.append(name, date, quantity, languages,
           listCell(row.tasks.map(task => catalog.task_names[task] || task)), listCell(row.sources),
           linkCell(row.dataset_links, 'Link', row.name), linkCell(row.paper_links, '论文', row.name));
         body.append(tr);
@@ -118,8 +126,8 @@
     find('next').addEventListener('click', () => { page++; render(); });
     function ready() {
       catalog = root.MappDatasetCatalog;
-      const expected = document.getElementById('resource-profiles-figure')?.dataset.version;
-      if (!catalog || catalog.data_version !== expected || !['pretrain', 'posttrain'].every(key => Array.isArray(catalog.stages?.[key]))) {
+      const expected = document.getElementById('dataset-catalog')?.dataset.version;
+      if (!catalog || catalog.schema_version !== 'dataset-catalog/2' || catalog.catalog_version !== expected || !['pretrain', 'posttrain'].every(key => Array.isArray(catalog.stages?.[key]))) {
         catalog = null;
         find('message').replaceChildren(node('span', 'The dataset catalog could not be loaded. '));
         const retry = node('button', 'Retry catalog'); retry.type = 'button';
@@ -144,5 +152,5 @@
     }
     ready();
   }
-  return { selectRows, init };
+  return { selectRows, formatNCC, init };
 });
