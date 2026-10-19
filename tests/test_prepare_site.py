@@ -14,6 +14,38 @@ spec.loader.exec_module(site)
 
 
 class SiteTests(unittest.TestCase):
+    def test_dataset_catalog_aggregates_collections_from_the_snapshot(self):
+        catalog = site.dataset_catalog(ROOT)
+        manifest = site.read(ROOT / 'data/manifest.json')
+        for stage, rows in catalog['stages'].items():
+            self.assertEqual(len(rows), manifest['counts'][stage]['collections'])
+            self.assertEqual(len(rows), len({row['name'] for row in rows}))
+            self.assertEqual(sum(row['dataset_count'] for row in rows), manifest['counts'][stage]['datasets'])
+        aya = [row for row in catalog['stages']['posttrain'] if row['name'] == 'Aya Dataset']
+        self.assertEqual(len(aya), 1)
+        self.assertEqual(aya[0]['language_count'], 70)
+        self.assertEqual(aya[0]['paper_years'], [2024])
+        self.assertIn('https://arxiv.org/abs/2402.06619', aya[0]['paper_links'])
+        site.prepare_dataset_catalog(ROOT, check=True)
+
+    def test_collection_quantities_sum_allocations_without_deduplicating_them(self):
+        def record(quantity):
+            return {'collection': 'Example', 'id': 'shared', 'quantity': quantity, 'tasks': ['QA'], 'sources': ['Human-Created']}
+        def fake_read(path):
+            if path.name == 'manifest.json':
+                return {'counts': {'pretrain': {'collections': 0}, 'posttrain': {'collections': 1}}}
+            if path.name == 'languages.json':
+                return [{'code': code, 'details': f'languages/{code}.json'} for code in ['eng', 'fra']]
+            parts = [record(10), record(10)] if path.stem == 'eng' else [record(5), record(None)]
+            return {'pretrain': {'datasets': []}, 'posttrain': {'datasets': parts}}
+        with patch.object(site, 'read', side_effect=fake_read):
+            group = site.collection_groups(ROOT)['posttrain']['Example']
+        self.assertEqual(sum(group['quantities']), 25)
+        self.assertEqual(group['missing'], 1)
+        self.assertEqual(group['ids'], {'shared'})
+        self.assertEqual(group['codes'], {'eng', 'fra'})
+        self.assertEqual(site.web_links(['https://example.org', 'javascript:alert(1)', None]), {'https://example.org'})
+
     def test_metadata_snapshot_covers_the_website_index(self):
         metadata = site.filter_metadata(ROOT)
         rows = site.read(ROOT / 'data/languages.json')
