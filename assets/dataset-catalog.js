@@ -7,9 +7,10 @@
   const compare = new Intl.Collator('en', { sensitivity: 'base', numeric: true }).compare;
   const normalize = text => String(text).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const formatNCC = value => value === null ? '—' : value.toExponential(3).replace('e+', 'e');
-  function selectRows(rows, query, sort, taskNames = {}) {
+  function selectRows(rows, query, sort, taskNames = {}, languageCode = null) {
     const terms = normalize(query).trim().split(/\s+/).filter(Boolean);
     return rows.filter(row => {
+      if (languageCode && !row.language_labels.includes(languageCode)) return false;
       const text = normalize([row.name, ...row.tasks, ...row.tasks.map(task => taskNames[task] || task), ...row.sources].join(' '));
       return terms.every(term => text.includes(term));
     }).sort((a, b) => {
@@ -29,7 +30,37 @@
       return element;
     };
     const number = value => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value);
-    let catalog, stage = 'pretrain', page = 1;
+    let catalog, stage = 'pretrain', page = 1, selectedLanguage = null, focusedCollection = null, pendingJump = false;
+    function matchingRows() {
+      return selectRows(catalog.stages[stage], find('search').value, find('sort').value, catalog.task_names, selectedLanguage?.code);
+    }
+    function updateSelection() {
+      find('selected').replaceChildren();
+      if (selectedLanguage) find('selected').append(node('span', 'Selected subset: covering '), node('strong', `${selectedLanguage.name} (${selectedLanguage.code})`));
+      else find('selected').textContent = 'All datasets';
+      find('clear').disabled = !selectedLanguage && !find('search').value;
+    }
+    function setStage(value) {
+      stage = value; page = 1;
+      for (const name of ['pretrain', 'posttrain']) {
+        find(name).setAttribute('aria-selected', String(name === stage));
+        find(name).tabIndex = name === stage ? 0 : -1;
+      }
+      find('panel').setAttribute('aria-labelledby', `catalog-${stage}`);
+    }
+    root.MappDatasetExplorer = {
+      openSubset({ code, name, stage: targetStage, collection }) {
+        if (!/^[a-z]{3}$/.test(code) || !['pretrain', 'posttrain'].includes(targetStage)) return;
+        selectedLanguage = { code, name };
+        focusedCollection = collection;
+        pendingJump = true;
+        find('search').value = '';
+        setStage(targetStage);
+        render();
+        document.getElementById('dataset-catalog-title').focus({ preventScroll: true });
+        document.getElementById('dataset-catalog').scrollIntoView({ block: 'start' });
+      },
+    };
     function listCell(values, limit = 3) {
       const cell = node('td');
       if (!values.length) { cell.textContent = '—'; return cell; }
@@ -68,9 +99,15 @@
       return cell;
     }
     function render() {
+      updateSelection();
       if (!catalog) return;
-      const rows = selectRows(catalog.stages[stage], find('search').value, find('sort').value, catalog.task_names);
+      const rows = matchingRows();
       const size = Number(find('page-size').value);
+      if (pendingJump) {
+        const index = rows.findIndex(row => row.name === focusedCollection);
+        page = index < 0 ? 1 : Math.floor(index / size) + 1;
+        pendingJump = false;
+      }
       const pages = Math.max(1, Math.ceil(rows.length / size));
       page = Math.max(1, Math.min(page, pages));
       const offset = (page - 1) * size;
@@ -78,6 +115,7 @@
       body.replaceChildren();
       for (const row of rows.slice(offset, offset + size)) {
         const tr = node('tr'), name = node('th', row.name);
+        tr.dataset.highlighted = String(row.name === focusedCollection);
         name.scope = 'row';
         const date = node('td', row.release_date || '—');
         if (row.release_date) {
@@ -98,6 +136,7 @@
       }
       if (!rows.length) { const row = node('tr'), cell = node('td', 'No collections match your search.'); cell.colSpan = 8; row.append(cell); body.append(row); }
       find('range').textContent = `Showing ${rows.length ? offset + 1 : 0}–${Math.min(offset + size, rows.length)} of ${number(rows.length)} collections`;
+      find('count').textContent = `Showing matching datasets: ${number(rows.length)}`;
       find('page').textContent = `Page ${page} of ${pages}`;
       find('prev').disabled = page === 1;
       find('next').disabled = page === pages;
@@ -106,12 +145,8 @@
     for (const value of ['pretrain', 'posttrain']) {
       const tab = find(value);
       tab.addEventListener('click', () => {
-        stage = value; page = 1;
-        for (const name of ['pretrain', 'posttrain']) {
-          find(name).setAttribute('aria-selected', String(name === stage));
-          find(name).tabIndex = name === stage ? 0 : -1;
-        }
-        find('panel').setAttribute('aria-labelledby', `catalog-${stage}`);
+        focusedCollection = null; pendingJump = false;
+        setStage(value);
         render();
       });
       tab.addEventListener('keydown', event => {
@@ -124,6 +159,10 @@
     for (const id of ['search', 'sort', 'page-size']) find(id).addEventListener(id === 'search' ? 'input' : 'change', () => { page = 1; render(); });
     find('prev').addEventListener('click', () => { page--; render(); });
     find('next').addEventListener('click', () => { page++; render(); });
+    find('clear').addEventListener('click', () => {
+      selectedLanguage = null; focusedCollection = null; pendingJump = false;
+      find('search').value = ''; page = 1; render();
+    });
     function ready() {
       catalog = root.MappDatasetCatalog;
       const expected = document.getElementById('dataset-catalog')?.dataset.version;

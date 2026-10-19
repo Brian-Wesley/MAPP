@@ -180,7 +180,7 @@
         .browse-tab { flex: 1 1 100%; text-align: left; }
       }
     </style>
-    <link rel="stylesheet" href="assets/language-explorer.css?v=a7c5c9b57b32">
+    <link rel="stylesheet" href="assets/language-explorer.css?v=4ed88e14b32e">
   </head>
   <body>
     <main>
@@ -402,13 +402,20 @@
         </figure>
       </section>
       <section class="figure-card explorer dataset-catalog" id="dataset-catalog" aria-labelledby="dataset-catalog-title" data-version="a17890c3a2cb4fad">
-        <h2 id="dataset-catalog-title">Dataset Catalog</h2>
+        <h2 id="dataset-catalog-title" tabindex="-1">Dataset Catalog</h2>
         <p class="figure-description">Explore the surveyed resources by collection. Language-specific subsets are grouped into a single dataset entry.</p>
         <div class="browse-tabs" role="tablist" aria-label="Dataset training stage">
           <button type="button" class="browse-tab" id="catalog-pretrain" role="tab" aria-selected="true" aria-controls="catalog-panel">Pre-train</button>
           <button type="button" class="browse-tab" id="catalog-posttrain" role="tab" aria-selected="false" aria-controls="catalog-panel" tabindex="-1">Post-train</button>
         </div>
         <div id="catalog-panel" role="tabpanel" aria-labelledby="catalog-pretrain">
+          <div class="explorer-selection catalog-selection">
+            <p id="catalog-selected">All datasets</p>
+            <div class="explorer-selection-actions">
+              <p id="catalog-count" aria-live="polite">Showing matching datasets: —</p>
+              <button type="button" id="catalog-clear" disabled>Clear filter</button>
+            </div>
+          </div>
           <div class="catalog-toolbar">
             <label class="catalog-search"><span class="visually-hidden">Search collections, tasks, or sources</span><input type="search" id="catalog-search" placeholder="Search collections, tasks, or sources…" autocomplete="off" disabled></label>
             <label for="catalog-sort">Sort by:</label>
@@ -439,10 +446,10 @@
       <div id="language-detail-content" aria-live="polite"></div>
     </dialog>
     <script src="assets/language-data.js?v=546cca3caa3c" defer></script>
-    <script src="assets/language-explorer.js?v=c5b1374c08f9" defer></script>
+    <script src="assets/language-explorer.js?v=deaacb0d9825" defer></script>
     <script src="assets/language-browser.js?v=a31bee575ca1" defer></script>
     <script src="assets/resource-profile-chart.js?v=0970015547b4" defer></script>
     <script id="dataset-catalog-data" src="assets/static-data/dataset-catalog.js?v=ae632ea54604" defer></script>
-    <script src="assets/dataset-catalog.js?v=256f2d5e98dd" defer></script>
+    <script src="assets/dataset-catalog.js?v=d75206c777ea" defer></script>
   </body>
 </html>

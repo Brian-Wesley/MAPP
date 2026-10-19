@@ -108,7 +108,20 @@
       const body = node('tbody');
       for (const record of values.datasets) {
         const row = node('tr');
-        row.append(node('td', record.collection), node('td', record.id), node('td', data.formatQuantity(record.quantity, true)));
+        const collection = node('td');
+        const link = node('a', record.collection, 'collection-catalog-link');
+        link.href = '#dataset-catalog';
+        link.setAttribute('aria-label', `${record.collection}: view datasets covering ${detail.name} (${detail.code})`);
+        link.addEventListener('click', event => {
+          if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+          if (dialog.open) dialog.close();
+          if (window.MappDatasetExplorer) {
+            event.preventDefault();
+            window.MappDatasetExplorer.openSubset({ code: detail.code, name: detail.name, stage, collection: record.collection });
+          }
+        });
+        collection.append(link);
+        row.append(collection, node('td', record.id), node('td', data.formatQuantity(record.quantity, true)));
         body.append(row);
       }
       table.append(head, body);
