@@ -180,7 +180,7 @@
         .browse-tab { flex: 1 1 100%; text-align: left; }
       }
     </style>
-    <link rel="stylesheet" href="assets/language-explorer.css?v=f430f58413a5">
+    <link rel="stylesheet" href="assets/language-explorer.css?v=562b0726bf55">
   </head>
   <body>
     <main>
@@ -222,7 +222,10 @@
               <h3 id="explorer-title" tabindex="-1">Language Explorer</h3>
               <div class="explorer-selection">
                 <p id="explorer-selected">All languages</p>
-                <button type="button" id="explorer-clear" disabled>Clear filter</button>
+                <div class="explorer-selection-actions">
+                  <p id="explorer-count" aria-live="polite">Showing matching languages: —</p>
+                  <button type="button" id="explorer-clear" disabled>Clear filter</button>
+                </div>
               </div>
               <div id="explorer-message" role="status"><p>Loading language data…</p></div>
               <fieldset class="explorer-controls" id="explorer-controls" disabled>
@@ -244,6 +247,7 @@
                     <option value="posttrain:desc">Post-training samples: highest first</option><option value="posttrain:asc">Post-training samples: lowest first</option>
                     <option value="family:asc">Family: A–Z</option><option value="family:desc">Family: Z–A</option>
                   </select>
+                  <button type="button" id="explorer-download" disabled>Download filtered CSV</button>
                 </div>
                 <div class="explorer-extra" id="explorer-extra" hidden>
                   <label>Development regime<select id="explorer-regime"><option value="">All regimes</option></select></label>
@@ -253,10 +257,6 @@
                   <label>Post-training availability<select id="explorer-posttrain-status"><option value="">All statuses</option><option value="clustered">Usable quantity</option><option value="uncovered">Not covered</option><option value="quantity_unavailable">Quantity unavailable</option></select></label>
                 </div>
               </fieldset>
-              <div class="explorer-results">
-                <p id="explorer-count" aria-live="polite">Showing matching languages: —</p>
-                <button type="button" id="explorer-download" disabled>Download filtered CSV</button>
-              </div>
               <div class="table-scroll" role="region" aria-label="Language search results, horizontally scrollable" tabindex="0">
                 <table class="explorer-table" aria-labelledby="explorer-title">
                   <colgroup><col class="col-language"><col class="col-code"><col class="col-stage"><col class="col-stage"><col class="col-family"><col class="col-details"></colgroup>

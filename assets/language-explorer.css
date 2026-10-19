@@ -16,10 +16,13 @@
 .explorer button:hover:enabled { background: #edf5f5; }
 .explorer button:disabled, .explorer select:disabled { color: #78848e; background: #f3f6f8; cursor: default; }
 .explorer input:focus-visible, .explorer select:focus-visible { outline: 3px solid #237c83; outline-offset: 2px; }
-.explorer-selection, .explorer-results, .explorer-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
-.explorer-selection { margin-bottom: 20px; }
-.explorer-selection p { margin: 0; flex: 1; line-height: 1.6; }
-.explorer-controls { min-width: 0; margin: 0; padding: 0; border: 0; }
+.explorer-selection, .explorer-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.explorer-selection { margin-bottom: 20px; column-gap: 32px; }
+.explorer-selection p { margin: 0; line-height: 1.6; }
+#explorer-selected { flex: 1; min-width: 0; }
+.explorer-selection-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+#explorer-count { font-size: 0.9rem; }
+.explorer-controls { min-width: 0; margin: 0 0 20px; padding: 0; border: 0; }
 .explorer-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-top: 12px; }
 .explorer-toolbar > label { display: flex; flex: 1 1 150px; min-width: 0; flex-direction: column; gap: 6px; color: #526271; font-size: 0.8rem; }
 .explorer-toolbar select { width: 100%; min-width: 0; }
@@ -28,14 +31,12 @@
 .explorer-sort select { max-width: 100%; }
 .group-matching { margin: -4px 0 14px; color: #526271; font-size: 0.8rem; }
 .group-filter-note { margin: 0 0 20px; color: #526271; font-size: 0.8rem; line-height: 1.6; }
-.explorer-search { display: block; flex: 1 1 280px; min-width: 0; }
+.explorer-search { display: block; flex: 1 1 240px; min-width: 0; max-width: 320px; }
 .explorer-search input { width: 100%; }
 #explorer-family { max-width: 100%; }
 .explorer-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; padding: 20px 0 4px; }
 .explorer-extra label { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: #526271; }
 .explorer-extra select { width: 100%; }
-.explorer-results { margin: 20px 0 12px; }
-.explorer-results p { margin: 0; font-size: 0.9rem; }
 .explorer-table { width: 100%; min-width: 820px; table-layout: fixed; border-collapse: collapse; font-size: 0.875rem; line-height: 1.5; }
 .explorer-table .col-language { width: 19%; }
 .explorer-table .col-code { width: 10%; }
