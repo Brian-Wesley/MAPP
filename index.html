@@ -180,7 +180,7 @@
         .browse-tab { flex: 1 1 100%; text-align: left; }
       }
     </style>
-    <link rel="stylesheet" href="assets/language-explorer.css?v=562b0726bf55">
+    <link rel="stylesheet" href="assets/language-explorer.css?v=28c91dab9f3b">
   </head>
   <body>
     <main>
@@ -239,14 +239,16 @@
                 </div>
                 <div class="explorer-sort">
                   <label class="explorer-search"><span class="visually-hidden">Search language name or ISO code</span><input type="search" id="explorer-search" placeholder="Search language name or ISO code…" autocomplete="off"></label>
-                  <label for="explorer-sort">Sort by:</label>
-                  <select id="explorer-sort">
-                    <option value="name:asc">Language: A–Z</option><option value="name:desc">Language: Z–A</option>
-                    <option value="code:asc">ISO code: A–Z</option><option value="code:desc">ISO code: Z–A</option>
-                    <option value="pretrain:desc">Pre-training NCC: highest first</option><option value="pretrain:asc">Pre-training NCC: lowest first</option>
-                    <option value="posttrain:desc">Post-training samples: highest first</option><option value="posttrain:asc">Post-training samples: lowest first</option>
-                    <option value="family:asc">Family: A–Z</option><option value="family:desc">Family: Z–A</option>
-                  </select>
+                  <div class="explorer-sort-field">
+                    <label for="explorer-sort">Sort by:</label>
+                    <select id="explorer-sort">
+                      <option value="name:asc">Language: A–Z</option><option value="name:desc">Language: Z–A</option>
+                      <option value="code:asc">ISO code: A–Z</option><option value="code:desc">ISO code: Z–A</option>
+                      <option value="pretrain:desc">Pre-training NCC: highest first</option><option value="pretrain:asc">Pre-training NCC: lowest first</option>
+                      <option value="posttrain:desc">Post-training samples: highest first</option><option value="posttrain:asc">Post-training samples: lowest first</option>
+                      <option value="family:asc">Family: A–Z</option><option value="family:desc">Family: Z–A</option>
+                    </select>
+                  </div>
                   <button type="button" id="explorer-download" disabled>Download filtered CSV</button>
                 </div>
                 <div class="explorer-extra" id="explorer-extra" hidden>
