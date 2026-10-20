@@ -140,7 +140,7 @@
       find('page').textContent = `Page ${page} of ${pages}`;
       find('prev').disabled = page === 1;
       find('next').disabled = page === pages;
-      find('quantity-heading').textContent = stage === 'pretrain' ? 'Data quantity (NCC)' : 'Data quantity (sample equivalents)';
+      find('quantity-heading').textContent = stage === 'pretrain' ? 'Quantity (NCC)' : 'Quantity (# sample)';
     }
     for (const value of ['pretrain', 'posttrain']) {
       const tab = find(value);
