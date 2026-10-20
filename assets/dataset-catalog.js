@@ -120,7 +120,9 @@
         const date = node('td', row.release_date || '—');
         if (row.release_date) {
           date.title = `Earliest recorded ${row.date_basis} date; source: ${row.date_sources.join(', ')}`;
-          const basis = node('small', row.date_basis === 'repository' ? 'Repository date' : row.date_basis === 'publication' ? 'Publication date' : 'Release date');
+          const precision = row.release_date.length === 4 ? 'year' : row.release_date.length === 7 ? 'month' : 'date';
+          const kind = { repository: 'Repository', publication: 'Publication', preprint: 'Preprint', release: 'Release' }[row.date_basis] || 'Release';
+          const basis = node('small', `${kind} ${precision}`);
           basis.className = 'catalog-date-basis'; date.append(basis);
         }
         const quantity = node('td', stage === 'pretrain' ? formatNCC(row.quantity) : row.quantity === null ? '—' : number(row.quantity));

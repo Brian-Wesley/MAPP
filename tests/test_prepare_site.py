@@ -29,8 +29,12 @@ class SiteTests(unittest.TestCase):
         self.assertEqual(aya[0]['release_date'], '2024-01-31')
         self.assertEqual(aya[0]['date_sources'], ['HF Date'])
         self.assertIn('https://arxiv.org/abs/2402.06619', aya[0]['paper_links'])
-        self.assertEqual(sum(row['release_date'] is not None for row in catalog['stages']['posttrain']), 181)
-        self.assertEqual(sum(row['release_date'] is not None for row in catalog['stages']['pretrain']), 33)
+        self.assertEqual(sum(row['release_date'] is not None for row in catalog['stages']['posttrain']), 182)
+        self.assertEqual(sum(row['release_date'] is not None for row in catalog['stages']['pretrain']), 35)
+        for row in catalog['stages']['pretrain']:
+            if row['name'] in ('CulturaX', 'HPLT_v2.0'):
+                self.assertEqual(row['release_date'], '2024')
+                self.assertEqual(row['date_basis'], 'publication')
         site.prepare_dataset_catalog(ROOT, check=True)
 
     def test_original_collection_import_counts_each_multilingual_record_once(self):
@@ -78,6 +82,22 @@ class SiteTests(unittest.TestCase):
         self.assertEqual(site.collection_date([{'Inferred Metadata': {'Created At': '2024-06-12'}}])['release_date'], '2024-06-12')
         self.assertEqual(site.collection_date([{'Inferred Metadata': {'S2 Date': '2023-02-10'}}])['date_basis'], 'publication')
         self.assertIsNone(site.collection_date([{'Inferred Metadata': {'HF Date': '2024-02-30', 'Last Modified': '2026-01-01'}}])['release_date'])
+
+    def test_collection_paper_fallback_preserves_precision_and_date_priority(self):
+        paper = {'Paper URL': 'https://aclanthology.org/2024.lrec-main.377/'}
+        result = site.collection_date([paper])
+        self.assertEqual(result['release_date'], '2024')
+        self.assertEqual(result['date_basis'], 'publication')
+        self.assertIn(paper['Paper URL'], result['date_sources'][0])
+        self.assertEqual(site.collection_date([{**paper, 'Inferred Metadata': {'HF Date': '2023-09-01'}}])['release_date'], '2023-09-01')
+        preprint = {'ArXiv URL': 'https://arxiv.org/abs/2304.01196v4'}
+        self.assertEqual(site.collection_date([preprint])['release_date'], '2023-04')
+        self.assertEqual(site.collection_date([preprint])['date_basis'], 'preprint')
+        self.assertEqual(site.collection_date([paper, preprint])['release_date'], '2024')
+        self.assertEqual(site.collection_date([{'Bibtex': '@article{x, year={2022}}'}])['release_date'], '2022')
+        for link in ['https://example.com/2024/paper', 'https://aclanthology.org.evil.test/2024.lrec-main.377/',
+                     'https://arxiv.org/abs/2313.01196', 'https://aclanthology.org/2024.lrec-main.0/extra']:
+            self.assertIsNone(site.collection_date([{'Paper URL': link}])['release_date'])
 
     def test_metadata_snapshot_covers_the_website_index(self):
         metadata = site.filter_metadata(ROOT)

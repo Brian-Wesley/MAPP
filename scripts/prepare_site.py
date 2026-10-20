@@ -16,6 +16,8 @@ includes all original collections, without the Language Explorer's filtering.
 Pre-training dates are also read from data_summaries_pretrain, matched by
 Collection and dataset ID. Only date fields are supplemented; quantities,
 tasks and language coverage still come from meta_data_pretrain/posttrain.
+When date metadata is absent, BibTeX years and recognized ACL/arXiv paper
+identifiers provide an offline fallback, preserving year/month precision.
 
 Uses only MAPP files, validates the figure audit, exports lightweight interactive
 coordinates and static-script data for anonymous hosting, and updates index.html image dimensions, figure counts and
@@ -277,6 +279,37 @@ def collection_date(records):
             earliest = min(item[0] for item in candidates)
             return {'release_date': earliest, 'date_basis': basis,
                     'date_sources': sorted({field for value, field in candidates if value == earliest})}
+    return paper_date(records)
+
+
+def paper_date(records):
+    """Use bibliographic years or known paper-ID formats, never arbitrary URL digits.
+
+    Published years take precedence over arXiv first-submission months. Retain
+    source precision instead of fabricating January 1 or a day of the month.
+    """
+    publication, preprint = [], []
+    for record in records:
+        for year in re.findall(r'\byear\s*=\s*[{\"]?\s*((?:19|20)\d{2})\b', str(record.get('Bibtex', '')), re.I):
+            publication.append((year, 'BibTeX year'))
+        links = set().union(*(web_links(record.get(field)) for field in ('Paper URL', 'ArXiv URL', 'Article URL', 'DOI URL')))
+        for link in links:
+            parsed = urlsplit(link)
+            if parsed.hostname in ('aclanthology.org', 'www.aclanthology.org'):
+                match = re.fullmatch(r'/((?:19|20)\d{2})\.[a-z0-9][a-z0-9-]*\.\d+(?:\.pdf|/)?', parsed.path, re.I)
+                if match:
+                    publication.append((match[1], f'ACL Anthology paper year: {link}'))
+            elif parsed.hostname in ('arxiv.org', 'www.arxiv.org', 'export.arxiv.org'):
+                match = re.fullmatch(r'/(?:abs|pdf|html)/(\d{2})(\d{2})\.\d{4,5}(?:v\d+)?(?:\.pdf)?/?', parsed.path)
+                if match:
+                    year, month = 2000 + int(match[1]), int(match[2])
+                    if 1 <= month <= 12 and (year, month) >= (2007, 4):
+                        preprint.append((f'{year}-{month:02d}', f'arXiv first-submission month: {link}'))
+    for basis, candidates in [('publication', publication), ('preprint', preprint)]:
+        if candidates:
+            earliest = min(item[0] for item in candidates)
+            return {'release_date': earliest, 'date_basis': basis,
+                    'date_sources': sorted({source for value, source in candidates if value == earliest})}
     return {'release_date': None, 'date_basis': None, 'date_sources': []}
 
 
