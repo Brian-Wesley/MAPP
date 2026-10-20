@@ -30,6 +30,7 @@ class SiteTests(unittest.TestCase):
         self.assertEqual(aya[0]['date_sources'], ['HF Date'])
         self.assertIn('https://arxiv.org/abs/2402.06619', aya[0]['paper_links'])
         self.assertEqual(sum(row['release_date'] is not None for row in catalog['stages']['posttrain']), 181)
+        self.assertEqual(sum(row['release_date'] is not None for row in catalog['stages']['pretrain']), 33)
         site.prepare_dataset_catalog(ROOT, check=True)
 
     def test_original_collection_import_counts_each_multilingual_record_once(self):
@@ -53,6 +54,16 @@ class SiteTests(unittest.TestCase):
             self.assertTrue(pre['quantity_partial'])
             self.assertTrue(pre['language_count_partial'])
             self.assertEqual(pre['dataset_count'], 2)
+            upstream = source / 'data_summaries_pretrain'
+            upstream.mkdir()
+            upstream_record = {**record, 'Languages': ['zho'], 'Text Metrics': {'Num Unicode Characters': 999},
+                               'Inferred Metadata': {'Github Date': '2022-05-06'}}
+            (upstream / 'raw-name.json').write_text(json.dumps({'shared': upstream_record}), encoding='utf-8')
+            refreshed = site.import_collection_metadata(ROOT, source)
+            self.assertEqual(refreshed['stages']['pretrain']['Example'],
+                             {**pre, 'release_date': '2022-05-06', 'date_sources': ['Github Date']})
+            self.assertEqual(refreshed['stages']['posttrain']['Example'], post)
+            self.assertIn('data_summaries_pretrain/raw-name.json', refreshed['sources_sha256'])
             (source / 'meta_data_posttrain/duplicate.json').write_text(json.dumps({'shared': record}), encoding='utf-8')
             with self.assertRaisesRegex(ValueError, 'Duplicate dataset ID'):
                 site.import_collection_metadata(ROOT, source)

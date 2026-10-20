@@ -13,6 +13,9 @@ To refresh the complete Dataset Catalog from original metadata:
     python -B scripts/prepare_site.py --collection-source-root <research repository>
 Saved data/collection-metadata.json is reused locally. This independent catalog
 includes all original collections, without the Language Explorer's filtering.
+Pre-training dates are also read from data_summaries_pretrain, matched by
+Collection and dataset ID. Only date fields are supplemented; quantities,
+tasks and language coverage still come from meta_data_pretrain/posttrain.
 
 Uses only MAPP files, validates the figure audit, exports lightweight interactive
 coordinates and static-script data for anonymous hosting, and updates index.html image dimensions, figure counts and
@@ -291,6 +294,21 @@ def import_collection_metadata(root, source_root):
         grouped = {}
         paths = sorted((Path(source_root) / f'meta_data_{stage}').glob('*.json'))
         require(paths, f'Missing original metadata: meta_data_{stage}')
+        date_supplements = {}
+        date_files = {}
+        if stage == 'pretrain':
+            # This is the upstream input to the mapping pipeline. Newly added
+            # dates need not wait for the scientific pipeline to be rerun.
+            for path in sorted((Path(source_root) / 'data_summaries_pretrain').glob('*.json')):
+                for identifier, record in read(path).items():
+                    inferred = record.get('Inferred Metadata', {})
+                    fields = {key: inferred[key] for key in ('Release Date', 'Publication Date', 'HF Date',
+                              'Created At', 'Github Date', 'GitHub Date', 'S2 Date', 'PwC Date') if inferred.get(key)}
+                    if fields:
+                        key = (record.get('Collection'), identifier)
+                        require(key not in date_supplements, f'Duplicate upstream date record: {key}')
+                        date_supplements[key] = fields
+                        date_files[key] = path
         for path in paths:
             hashes[f'meta_data_{stage}/{path.name}'] = sha(path)
             for identifier, record in read(path).items():
@@ -298,6 +316,13 @@ def import_collection_metadata(root, source_root):
                 require(isinstance(name, str) and name.strip(), f'Missing collection in {path.name}')
                 group = grouped.setdefault(name, {})
                 require(identifier not in group, f'Duplicate dataset ID in collection: {name}/{identifier}')
+                key = (name, identifier)
+                if key in date_supplements:
+                    record = {**record, 'Inferred Metadata': {**record.get('Inferred Metadata', {}), **date_supplements[key]}}
+                    date_path = date_files[key]
+                    relative = f'data_summaries_pretrain/{date_path.name}'
+                    if relative not in hashes:
+                        hashes[relative] = sha(date_path)
                 group[identifier] = record
         stages[stage] = {}
         for name, items in sorted(grouped.items(), key=lambda item: item[0].casefold()):
@@ -377,7 +402,7 @@ def main():
     parser.add_argument('--metadata-source-root', type=Path,
                         help='Import the three Explorer fields from existing join_language_clusters.py CSV outputs')
     parser.add_argument('--collection-source-root', type=Path,
-                        help='Import the full collection catalog from original meta_data_pretrain/posttrain JSON files')
+                        help='Import original meta_data_pretrain/posttrain records and upstream data_summaries_pretrain dates')
     args = parser.parse_args()
     try:
         portable_details(ROOT, check=args.check)
@@ -401,6 +426,9 @@ def main():
                 require(path.is_file() and path.read_text(encoding='utf-8') == metadata, 'Collection metadata needs importing')
             else:
                 path.write_text(metadata, encoding='utf-8', newline='\n')
+            print(f'Dataset Catalog: {"verified" if args.check else "refreshed"} source metadata, including upstream pre-training dates.')
+        elif not args.check:
+            print('Dataset Catalog: using saved data/collection-metadata.json. To import source changes, add --collection-source-root <research repository>.')
         prepare_dataset_catalog(ROOT, check=args.check)
         html = prepared_html(ROOT)
         if args.check:
