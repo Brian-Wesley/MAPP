@@ -142,7 +142,9 @@
       find('page').textContent = `Page ${page} of ${pages}`;
       find('prev').disabled = page === 1;
       find('next').disabled = page === pages;
-      find('quantity-heading').textContent = stage === 'pretrain' ? 'Quantity (NCC)' : 'Quantity (# sample)';
+      const unitHeading = node('span', stage === 'pretrain' ? '(NCC)' : '(# sample)');
+      unitHeading.className = 'catalog-heading-line';
+      find('quantity-heading').replaceChildren(node('span', 'Quantity '), unitHeading);
     }
     for (const value of ['pretrain', 'posttrain']) {
       const tab = find(value);

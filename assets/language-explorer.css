@@ -129,9 +129,10 @@
 .catalog-table th, .catalog-table td { padding: 12px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid #e3eaf0; overflow-wrap: anywhere; }
 .catalog-table thead th { background: #edf5f5; font-weight: 600; }
 .catalog-table th:nth-child(1) { width: auto; }
-.catalog-table th:nth-child(2) { width: 12%; }
-.catalog-table th:nth-child(3) { width: 13%; }
-.catalog-table th:nth-child(4) { width: 8%; }
+.catalog-table th:nth-child(2) { width: 104px; }
+.catalog-table th:nth-child(3) { width: 104px; }
+.catalog-table th:nth-child(4) { width: 120px; white-space: nowrap; }
+.catalog-heading-line { display: block; white-space: nowrap; }
 .catalog-table th:nth-child(5) { width: 18%; }
 .catalog-table th:nth-child(6) { width: 15%; }
 .catalog-table th:nth-child(7), .catalog-table th:nth-child(8) { width: 78px; }
