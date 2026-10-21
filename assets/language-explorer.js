@@ -109,18 +109,18 @@
     addStatistic(list, 'Collections', number(values.n_collections));
     addStatistic(list, 'Datasets', number(values.n_datasets));
     section.append(list);
-    for (const [key, label] of [['sources', 'Sources'], ['tasks', 'Tasks']]) {
-      const entries = Object.entries(values[key] || {}).sort((a, b) => (b[1].proportion ?? -1) - (a[1].proportion ?? -1));
-      if (entries.length) section.append(node('p', `${label}: ${entries.map(([name, info]) => `${name}${info.proportion == null ? '' : ` (${(info.proportion * 100).toFixed(2)}%)`}`).join('; ')}.`));
-    }
-    if (values.datasets.length) {
-      if (window.MappCollectionSnapshot) {
-        const snapshot = window.MappCollectionSnapshot.create({ document, records: values.datasets, stage,
+    if (window.MappCollectionSnapshot) {
+      for (const kind of ['source', 'task', 'collection']) {
+        const categories = values[`${kind}s`] || {};
+        if (kind === 'collection' ? !values.datasets.length : !Object.keys(categories).length) continue;
+        const snapshot = window.MappCollectionSnapshot.create({ document, records: values.datasets, stage, kind, categories,
           language: `${detail.name} (${detail.code})`, collectionLink: name => collectionLink(name, stage, detail),
           formatQuantity: value => data.formatQuantity(value), ResizeObserver: window.ResizeObserver });
         section.append(snapshot.element);
         snapshots.push(snapshot);
       }
+    }
+    if (values.datasets.length) {
       const disclosure = node('details');
       disclosure.append(node('summary', `Dataset records (${number(values.datasets.length)})`));
       const table = node('table', undefined, 'detail-datasets');

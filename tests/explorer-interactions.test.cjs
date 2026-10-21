@@ -137,7 +137,8 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   await tick();
   assert.equal(dialog.open, true);
   assert.ok(dialogContent.textContent.includes('Zulu (zul)'));
-  assert.equal(descendants(dialogContent).filter(element => element.className === 'collection-snapshot').length, 2);
+  assert.deepEqual(descendants(dialogContent).filter(element => element.className === 'collection-snapshot')
+    .map(element => element.getAttribute('data-snapshot-kind')), ['source', 'task', 'collection', 'source', 'task', 'collection']);
   assert.equal(find('range').textContent, beforeRange);
   assert.equal(JSON.stringify(window.MappExplorer.getState()), beforeDetails);
   const dialogLink = descendants(dialogContent).find(element => element.className === 'collection-catalog-link');
@@ -173,9 +174,11 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   assert.equal(find('rows').children.length, 2);
   assert.ok(find('rows').textContent.includes('Dataset records'));
   const snapshots = descendants(find('rows')).filter(element => element.className === 'collection-snapshot');
-  assert.equal(snapshots.length, 2);
+  assert.equal(snapshots.length, 6);
+  assert.deepEqual(snapshots.map(element => element.getAttribute('data-snapshot-kind')), ['source', 'task', 'collection', 'source', 'task', 'collection']);
   for (const snapshot of snapshots) {
     const toggle = descendants(snapshot).find(element => element.className === 'snapshot-toggle');
+    if (toggle.hidden) continue;
     assert.equal(toggle.getAttribute('aria-expanded'), 'false');
     toggle.click();
     assert.equal(toggle.getAttribute('aria-expanded'), 'true');

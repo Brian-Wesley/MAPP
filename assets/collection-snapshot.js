@@ -29,9 +29,35 @@
   function visibleCount(count, hasUnavailable = false) {
     return hasUnavailable ? Math.min(4, count) : count <= 6 ? count : 5;
   }
+  function categorySummary(categories, records, field) {
+    const valid = value => typeof value === 'number' && Number.isFinite(value) && value >= 0;
+    const unavailable = new Map();
+    let unknown = 0;
+    for (const record of records) {
+      if (valid(record.quantity)) continue;
+      unknown++;
+      const names = record[field]?.length ? record[field] : ['Unspecified'];
+      for (const name of new Set(names)) unavailable.set(name, (unavailable.get(name) || 0) + 1);
+    }
+    const rows = [];
+    for (const [name, info] of Object.entries(categories)) {
+      if (!valid(info.count) || !valid(info.proportion)) {
+        if (!unavailable.has(name)) unavailable.set(name, null);
+      } else if (info.count > 0 && info.proportion > 0) {
+        // Preserve the pipeline's category allocation and proportions.
+        rows.push({ name, quantity: info.count, share: info.proportion });
+      }
+    }
+    rows.sort((a, b) => b.share - a.share || a.name.localeCompare(b.name, 'en'));
+    return { rows, total: rows.reduce((sum, row) => sum + row.quantity, 0),
+      unknown: unknown || unavailable.size,
+      unavailable: [...unavailable].map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name, 'en')) };
+  }
   let sequence = 0;
-  function create({ document, records, stage, language, collectionLink, formatQuantity, ResizeObserver }) {
-    const summary = aggregate(records);
+  function create({ document, records, stage, language, collectionLink, formatQuantity, ResizeObserver,
+    kind = 'collection', categories = {} }) {
+    const summary = kind === 'collection' ? aggregate(records) : categorySummary(categories, records, `${kind}s`);
+    const label = kind[0].toUpperCase() + kind.slice(1);
     const unit = stage === 'pretrain' ? 'NCC' : 'sample equivalents';
     const node = (tag, text, className) => {
       const element = document.createElement(tag);
@@ -39,9 +65,11 @@
       if (className) element.className = className;
       return element;
     };
+    const itemName = name => kind === 'collection' ? collectionLink(name) : node('span', name);
     const element = node('section', undefined, 'collection-snapshot');
+    element.setAttribute('data-snapshot-kind', kind);
     const header = node('div', undefined, 'snapshot-header');
-    header.append(node('h5', 'Collection Snapshot'),
+    header.append(node('h5', `${label} Snapshot`),
       node('p', `Share of ${stage === 'pretrain' ? 'NCC' : 'samples'} for ${language}.`, 'snapshot-note'));
     element.append(header);
     const unavailableDetails = node('div', undefined, 'snapshot-more snapshot-unavailable');
@@ -53,11 +81,11 @@
     unavailableToggle.setAttribute('aria-controls', unavailableDetails.id);
     unavailableToggle.setAttribute('aria-expanded', 'false');
     if (summary.unknown) {
-      unavailableDetails.append(node('p', 'These records have unavailable quantities and are excluded from the pie and percentages. Collections with partial quantities can also appear above.', 'snapshot-note'));
+      unavailableDetails.append(node('p', `These records have unavailable quantities and are excluded from the pie and percentages. ${label}s with partial quantities can also appear above.`, 'snapshot-note'));
       const list = node('ul', undefined, 'snapshot-list');
       for (const row of summary.unavailable) {
         const item = node('li', undefined, 'snapshot-unavailable-item');
-        item.append(collectionLink(row.name), node('span', `${row.count} record${row.count === 1 ? '' : 's'}`));
+        item.append(itemName(row.name), node('span', row.count === null ? 'Unavailable' : `${row.count} record${row.count === 1 ? '' : 's'}`));
         list.append(item);
       }
       unavailableDetails.append(list);
@@ -68,7 +96,7 @@
       unavailableToggle.textContent = `Unavailable quantities ${unavailableDetails.hidden ? '▾' : '▴'}`;
     });
     if (!summary.total) {
-      element.append(node('p', 'No positive quantity is available to calculate collection shares.', 'snapshot-note'));
+      element.append(node('p', `No positive quantity is available to calculate ${kind} shares.`, 'snapshot-note'));
       if (summary.unknown) element.append(unavailableToggle, unavailableDetails);
       return { element, mount: () => () => {} };
     }
@@ -93,24 +121,25 @@
       const swatch = node('span', undefined, 'snapshot-swatch');
       swatch.style.backgroundColor = color;
       swatch.setAttribute('aria-hidden', 'true');
-      const name = collectionLink(row.name);
-      name.className += ' snapshot-name';
+      const name = itemName(row.name);
+      name.className = [name.className, 'snapshot-name'].filter(Boolean).join(' ');
       name.title = description(row);
       const share = node('span', percent(row.share), 'snapshot-percent');
       share.title = description(row);
       item.append(swatch, name, share);
       return item;
     }
-    function draw(size) {
+    function draw() {
       const n = visibleCount(summary.rows.length, summary.unknown > 0);
       const leading = summary.rows.slice(0, n), trailing = summary.rows.slice(n);
       const otherQuantity = trailing.reduce((sum, row) => sum + row.quantity, 0);
+      const otherShare = trailing.reduce((sum, row) => sum + row.share, 0);
       const slices = leading.map((row, index) => ({ ...row, color: COLORS[index % COLORS.length] }));
-      if (trailing.length) slices.push({ name: `Others (${trailing.length} collections)`, quantity: otherQuantity, share: otherQuantity / summary.total, color: OTHER });
+      if (trailing.length) slices.push({ name: `Others (${trailing.length} ${kind}s)`, quantity: otherQuantity, share: otherShare, color: OTHER });
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('viewBox', '0 0 200 200');
       svg.setAttribute('role', 'group');
-      svg.setAttribute('aria-label', `${language}: ${stage === 'pretrain' ? 'pre-training' : 'post-training'} collection shares`);
+      svg.setAttribute('aria-label', `${language}: ${stage === 'pretrain' ? 'pre-training' : 'post-training'} ${kind} shares`);
       const tooltip = node('div', undefined, 'snapshot-tooltip');
       tooltip.hidden = true;
       let angle = -Math.PI / 2;
@@ -142,11 +171,11 @@
       const otherSwatch = node('span', undefined, 'snapshot-swatch');
       otherSwatch.style.backgroundColor = OTHER;
       otherSwatch.setAttribute('aria-hidden', 'true');
-      toggle.replaceChildren(otherSwatch, node('span', `Others (${trailing.length}) · ${percent(otherQuantity / summary.total)} ${expanded ? '▴' : '▾'}`));
+      toggle.replaceChildren(otherSwatch, node('span', `Others (${trailing.length}) · ${percent(otherShare)} ${expanded ? '▴' : '▾'}`));
       toggle.setAttribute('aria-expanded', String(expanded));
       more.replaceChildren();
       if (trailing.length) {
-        more.append(node('p', 'Collections grouped as Others in the pie:', 'snapshot-note'));
+        more.append(node('p', `${label}s grouped as Others in the pie:`, 'snapshot-note'));
         const list = node('ol', undefined, 'snapshot-list');
         list.start = n + 1;
         list.append(...trailing.map(row => legendRow(row, OTHER)));
@@ -154,8 +183,8 @@
       }
       more.hidden = !expanded || !trailing.length;
     }
-    toggle.addEventListener('click', () => { expanded = !expanded; draw(lastSize || 184); });
-    draw(184);
+    toggle.addEventListener('click', () => { expanded = !expanded; draw(); });
+    draw();
     function mount() {
       const resize = () => {
         const width = layout.getBoundingClientRect().width;
@@ -164,7 +193,7 @@
         if (size === lastSize) return;
         lastSize = size;
         layout.style.setProperty('--snapshot-size', `${size}px`);
-        draw(size);
+        draw();
       };
       resize();
       const observer = ResizeObserver ? new ResizeObserver(resize) : null;
@@ -173,5 +202,5 @@
     }
     return { element, mount };
   }
-  return { aggregate, visibleCount, create };
+  return { aggregate, categorySummary, visibleCount, create };
 });
