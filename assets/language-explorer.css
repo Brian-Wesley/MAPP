@@ -60,9 +60,15 @@
 .explorer-pagination nav button { min-width: 36px; }
 .explorer-pagination button[aria-current="page"] { background: #237c83; color: white; border-color: #237c83; }
 .language-detail-row > td { padding: 20px; background: #f8fafc; }
-.language-detail-row h3 { margin: 0 0 12px; font-size: 1.05rem; }
-.language-detail-row h4 { margin: 0 0 12px; font-size: 0.95rem; }
-.detail-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.language-detail-row h3, .language-detail-dialog h3 { margin: 0 0 12px; font-size: 1.15rem; line-height: 1.4; }
+.detail-stage > h4 { margin: 0 0 12px; font-size: 1rem; line-height: 1.4; }
+.detail-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto auto auto; column-gap: 28px; }
+.detail-stage { display: grid; grid-template-rows: subgrid; grid-row: span 3; min-width: 0; }
+.cluster-summary { display: grid; grid-template-rows: auto 1fr; }
+.cluster-summary > h5 { margin: 0 0 10px; }
+.cluster-summary > dl { align-content: start; }
+.detail-stage-content { min-width: 0; }
+.cluster-summary > h5, .collection-snapshot h5, .detail-columns summary { font-size: 0.9rem; font-weight: 600; line-height: 1.4; }
 .detail-columns dl { display: grid; grid-template-columns: minmax(100px, 1fr) 2fr; gap: 6px 12px; margin: 0; }
 .detail-columns dt { color: #526271; }
 .detail-columns dd { margin: 0; overflow-wrap: anywhere; }

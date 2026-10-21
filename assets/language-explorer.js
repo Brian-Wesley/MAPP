@@ -97,18 +97,22 @@
   }
   function stageDetails(stage, detail, snapshots) {
     const values = detail[stage];
-    const section = node('section');
+    const section = node('section', undefined, 'detail-stage');
     section.append(node('h4', stage === 'pretrain' ? 'Pre-training' : 'Post-training'));
+    const summary = node('section', undefined, 'cluster-summary');
+    summary.append(node('h5', 'Cluster Summary'));
     const list = node('dl');
-    addStatistic(list, 'Cluster', String(values.cluster));
     addStatistic(list, 'Status', data.statusNames[values.status]);
-    addStatistic(list, stage === 'pretrain' ? 'NCC' : 'Sample equivalents', data.formatQuantity(values.quantity, true));
-    if (stage === 'pretrain' && values.quantity_ci95?.lower != null && values.quantity_ci95?.upper != null) {
-      addStatistic(list, 'NCC 95% interval', `${values.quantity_ci95.lower} – ${values.quantity_ci95.upper}`);
-    }
+    addStatistic(list, 'Cluster', String(values.cluster));
     addStatistic(list, 'Collections', number(values.n_collections));
     addStatistic(list, 'Datasets', number(values.n_datasets));
-    section.append(list);
+    addStatistic(list, stage === 'pretrain' ? 'NCC' : 'Sample equivalents', data.formatQuantity(values.quantity, true));
+    if (stage === 'pretrain' && values.quantity_ci95?.lower != null && values.quantity_ci95?.upper != null) {
+      addStatistic(list, 'NCC 95% CI', `[${values.quantity_ci95.lower}, ${values.quantity_ci95.upper}]`);
+    }
+    summary.append(list);
+    const content = node('div', undefined, 'detail-stage-content');
+    section.append(summary, content);
     if (window.MappCollectionSnapshot) {
       for (const kind of ['source', 'task', 'collection']) {
         const categories = values[`${kind}s`] || {};
@@ -116,13 +120,13 @@
         const snapshot = window.MappCollectionSnapshot.create({ document, records: values.datasets, stage, kind, categories,
           language: `${detail.name} (${detail.code})`, collectionLink: name => collectionLink(name, stage, detail),
           formatQuantity: value => data.formatQuantity(value), ResizeObserver: window.ResizeObserver });
-        section.append(snapshot.element);
+        content.append(snapshot.element);
         snapshots.push(snapshot);
       }
     }
     if (values.datasets.length) {
       const disclosure = node('details');
-      disclosure.append(node('summary', `Dataset records (${number(values.datasets.length)})`));
+      disclosure.append(node('summary', `Dataset Records (${number(values.datasets.length)})`));
       const table = node('table', undefined, 'detail-datasets');
       const head = node('thead');
       const headings = node('tr');
@@ -143,7 +147,7 @@
       }
       table.append(head, body);
       disclosure.append(table);
-      section.append(disclosure);
+      content.append(disclosure);
     }
     return section;
   }

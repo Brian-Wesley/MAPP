@@ -172,7 +172,16 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   await tick();
   assert.deepEqual(detailRequests, ['eng']);
   assert.equal(find('rows').children.length, 2);
-  assert.ok(find('rows').textContent.includes('Dataset records'));
+  assert.ok(find('rows').textContent.includes('Dataset Records'));
+  const stages = descendants(find('rows')).filter(element => element.className === 'detail-stage');
+  assert.equal(stages.length, 2);
+  const summaries = stages.map(stage => stage.children[1]);
+  assert(summaries.every(summary => summary.className === 'cluster-summary' && summary.children[0].textContent === 'Cluster Summary'));
+  const summaryLabels = summary => summary.children[1].children.filter(element => element.tag === 'dt').map(element => element.textContent);
+  assert.deepEqual(summaryLabels(summaries[0]), ['Status', 'Cluster', 'Collections', 'Datasets', 'NCC', 'NCC 95% CI']);
+  assert.deepEqual(summaryLabels(summaries[1]), ['Status', 'Cluster', 'Collections', 'Datasets', 'Sample equivalents']);
+  const ci = json('languages/eng.json').pretrain.quantity_ci95;
+  assert.equal(summaries[0].children[1].children.at(-1).textContent, `[${ci.lower}, ${ci.upper}]`);
   const snapshots = descendants(find('rows')).filter(element => element.className === 'collection-snapshot');
   assert.equal(snapshots.length, 6);
   assert.deepEqual(snapshots.map(element => element.getAttribute('data-snapshot-kind')), ['source', 'task', 'collection', 'source', 'task', 'collection']);
