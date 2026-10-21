@@ -71,6 +71,25 @@
 .detail-datasets { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 12px; font-size: 0.8rem; }
 .detail-datasets th, .detail-datasets td { padding: 8px; }
 .detail-datasets td { overflow-wrap: anywhere; }
+.collection-snapshot { margin: 20px 0; min-width: 0; }
+.collection-snapshot h5 { margin: 0 0 8px; font-size: 0.9rem; }
+.collection-snapshot .snapshot-note { margin: 0 0 10px; font-size: 0.75rem; color: #526271; line-height: 1.5; }
+.snapshot-layout { --snapshot-size: 184px; display: grid; grid-template-columns: var(--snapshot-size) minmax(0, 1fr); gap: 12px; align-items: start; }
+.snapshot-chart { width: var(--snapshot-size); height: var(--snapshot-size); position: relative; }
+.snapshot-chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.snapshot-chart [tabindex]:focus-visible { outline: none; stroke: #172a3a; stroke-width: 2; }
+.snapshot-side { height: var(--snapshot-size); display: flex; flex-direction: column; min-width: 0; }
+.snapshot-list { list-style: none; margin: 0; padding: 0; }
+.snapshot-item { height: 38px; display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; gap: 6px; font-size: 0.75rem; line-height: 1.35; }
+.snapshot-swatch { width: 8px; height: 8px; border-radius: 2px; }
+.snapshot-name { min-width: 0; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.snapshot-percent { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.explorer .snapshot-toggle, .language-detail-dialog .snapshot-toggle { margin-top: auto; width: 100%; height: 32px; min-height: 32px; padding: 4px; flex-shrink: 0; font-size: 0.7rem; line-height: 1.2; border: 1px solid #c5d4dd; border-radius: 6px; background: #fff; color: #237c83; cursor: pointer; }
+.collection-snapshot [hidden] { display: none; }
+.snapshot-more { margin-top: 12px; padding-top: 10px; border-top: 1px solid #dce5eb; }
+.snapshot-more .snapshot-item { height: auto; min-height: 38px; }
+.snapshot-more .snapshot-name { display: block; overflow: visible; }
+.snapshot-tooltip { position: absolute; bottom: calc(100% + 8px); left: 0; z-index: 3; width: 240px; max-width: 70vw; padding: 8px; background: #172a3a; color: #fff; border-radius: 6px; font-size: 0.75rem; line-height: 1.4; pointer-events: none; }
 .view-languages:enabled { background: #fff; color: #1b6268; border-color: #c5d4dd; cursor: pointer; }
 .view-languages:enabled:hover { background: #edf5f5; }
 .view-languages:enabled[aria-pressed="true"] { background: #237c83; color: #fff; border-color: #237c83; }

@@ -9,7 +9,7 @@ const read = file => fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
 const json = file => JSON.parse(read(`data/${data.resolveDataPath(file)}`));
 const catalog = data.parseCatalog(json('manifest.json'), json('clusters.json'), json('languages.json'), json('explorer-filters.json'));
 class Element {
-  constructor(tag) { this.tag = tag; this.children = []; this.attributes = {}; this.events = {}; this.dataset = {}; this.style = {}; this.value = ''; this.disabled = false; }
+  constructor(tag) { this.tag = tag; this.children = []; this.attributes = {}; this.events = {}; this.dataset = {}; this.style = { setProperty(key, value) { this[key] = value; } }; this.value = ''; this.disabled = false; }
   set textContent(value) { this.text = String(value); this.children = []; }
   get textContent() { return (this.text || '') + this.children.map(child => typeof child === 'string' ? child : child.textContent).join(''); }
   append(...children) { for (const child of children) { this.children.push(child); if (typeof child !== 'string') child.parent = this; } }
@@ -26,7 +26,7 @@ class Element {
   showModal() { this.open = true; }
   close() { this.open = false; this.dispatchEvent({ type: 'close' }); }
   querySelectorAll() { return []; }
-  get isConnected() { return !!this.parent; }
+  get isConnected() { return this.tag === 'body' || !!this.parent?.isConnected; }
   after(item) { const list = this.parent.children; list.splice(list.indexOf(this) + 1, 0, item); item.parent = this.parent; }
   remove() { if (this.parent) { const list = this.parent.children; list.splice(list.indexOf(this), 1); this.parent = null; } }
 }
@@ -62,6 +62,7 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   let downloaded;
   const window = { MappData: { ...data, loadCatalog: async () => catalog, loadDetails: async code => { detailRequests.push(code); return json(`languages/${code}.json`); } } };
   window.getSelection = () => null;
+  window.MappCollectionSnapshot = require('../assets/collection-snapshot.js');
   window.MappData.loadPlotPoints = async () => JSON.parse(read('assets/resource-profile-points.json'));
   const context = vm.createContext({ window, document, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } }, Blob, URL: { createObjectURL(blob) { downloaded = blob; return 'blob:test'; }, revokeObjectURL() {} }, setTimeout() {} });
   vm.runInContext(read('assets/language-explorer.js'), context);
@@ -136,6 +137,7 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   await tick();
   assert.equal(dialog.open, true);
   assert.ok(dialogContent.textContent.includes('Zulu (zul)'));
+  assert.equal(descendants(dialogContent).filter(element => element.className === 'collection-snapshot').length, 2);
   assert.equal(find('range').textContent, beforeRange);
   assert.equal(JSON.stringify(window.MappExplorer.getState()), beforeDetails);
   const dialogLink = descendants(dialogContent).find(element => element.className === 'collection-catalog-link');
@@ -170,6 +172,15 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   assert.deepEqual(detailRequests, ['eng']);
   assert.equal(find('rows').children.length, 2);
   assert.ok(find('rows').textContent.includes('Dataset records'));
+  const snapshots = descendants(find('rows')).filter(element => element.className === 'collection-snapshot');
+  assert.equal(snapshots.length, 2);
+  for (const snapshot of snapshots) {
+    const toggle = descendants(snapshot).find(element => element.className === 'snapshot-toggle');
+    assert.equal(toggle.getAttribute('aria-expanded'), 'false');
+    toggle.click();
+    assert.equal(toggle.getAttribute('aria-expanded'), 'true');
+    assert.equal(descendants(snapshot).find(element => element.className === 'snapshot-more').hidden, false);
+  }
   const ayaLink = descendants(find('rows')).find(element => element.className === 'collection-catalog-link' && element.textContent === 'Aya Dataset');
   assert(ayaLink);
   ayaLink.click();

@@ -75,7 +75,27 @@
   function addStatistic(list, label, value) {
     list.append(node('dt', label), node('dd', value));
   }
-  function stageDetails(stage, detail) {
+  const activeSnapshots = new Set();
+  function cleanSnapshots() {
+    for (const item of activeSnapshots) {
+      if (!item.element.isConnected) { item.disconnect(); activeSnapshots.delete(item); }
+    }
+  }
+  function collectionLink(name, stage, detail) {
+    const link = node('a', name, 'collection-catalog-link');
+    link.href = '#dataset-catalog';
+    link.setAttribute('aria-label', `${name}: view datasets covering ${detail.name} (${detail.code})`);
+    link.addEventListener('click', event => {
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      if (dialog.open) dialog.close();
+      if (window.MappDatasetExplorer) {
+        event.preventDefault();
+        window.MappDatasetExplorer.openSubset({ code: detail.code, name: detail.name, stage, collection: name });
+      }
+    });
+    return link;
+  }
+  function stageDetails(stage, detail, snapshots) {
     const values = detail[stage];
     const section = node('section');
     section.append(node('h4', stage === 'pretrain' ? 'Pre-training' : 'Post-training'));
@@ -94,6 +114,13 @@
       if (entries.length) section.append(node('p', `${label}: ${entries.map(([name, info]) => `${name}${info.proportion == null ? '' : ` (${(info.proportion * 100).toFixed(2)}%)`}`).join('; ')}.`));
     }
     if (values.datasets.length) {
+      if (window.MappCollectionSnapshot) {
+        const snapshot = window.MappCollectionSnapshot.create({ document, records: values.datasets, stage,
+          language: `${detail.name} (${detail.code})`, collectionLink: name => collectionLink(name, stage, detail),
+          formatQuantity: value => data.formatQuantity(value), ResizeObserver: window.ResizeObserver });
+        section.append(snapshot.element);
+        snapshots.push(snapshot);
+      }
       const disclosure = node('details');
       disclosure.append(node('summary', `Dataset records (${number(values.datasets.length)})`));
       const table = node('table', undefined, 'detail-datasets');
@@ -109,17 +136,7 @@
       for (const record of values.datasets) {
         const row = node('tr');
         const collection = node('td');
-        const link = node('a', record.collection, 'collection-catalog-link');
-        link.href = '#dataset-catalog';
-        link.setAttribute('aria-label', `${record.collection}: view datasets covering ${detail.name} (${detail.code})`);
-        link.addEventListener('click', event => {
-          if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-          if (dialog.open) dialog.close();
-          if (window.MappDatasetExplorer) {
-            event.preventDefault();
-            window.MappDatasetExplorer.openSubset({ code: detail.code, name: detail.name, stage, collection: record.collection });
-          }
-        });
+        const link = collectionLink(record.collection, stage, detail);
         collection.append(link);
         row.append(collection, node('td', record.id), node('td', data.formatQuantity(record.quantity, true)));
         body.append(row);
@@ -135,14 +152,17 @@
     const request = Symbol(row.code);
     detailRequests.set(container, request);
     container.replaceChildren(node('p', `Loading details for ${row.name}…`));
+    cleanSnapshots();
     try {
       const detail = await data.loadDetails(row.code);
       if (!container.isConnected || detailRequests.get(container) !== request) return;
       const heading = node('h3', `${detail.name} (${detail.code})`);
       const metadata = node('p', `Family: ${detail.family || 'Unknown family'} · Development regime: ${data.regimeNames[detail.regime] || detail.regime}`);
       const columns = node('div', undefined, 'detail-columns');
-      columns.append(stageDetails('pretrain', detail), stageDetails('posttrain', detail));
+      const snapshots = [];
+      columns.append(stageDetails('pretrain', detail, snapshots), stageDetails('posttrain', detail, snapshots));
       container.replaceChildren(heading, metadata, columns);
+      for (const snapshot of snapshots) activeSnapshots.add({ element: snapshot.element, disconnect: snapshot.mount() });
     } catch (error) {
       if (!container.isConnected || detailRequests.get(container) !== request) return;
       console.error(`Language details failed (${row.code})`, error);
@@ -163,6 +183,7 @@
     const toggle = button('Details', () => {
       if (expandedRow) {
         expandedRow.remove();
+        cleanSnapshots();
         expandedRow = null;
         toggle.textContent = 'Details';
         toggle.setAttribute('aria-expanded', 'false');
@@ -226,6 +247,7 @@
     state.page = page.page;
     const rows = find('rows');
     rows.replaceChildren(...page.rows.map(languageRow));
+    cleanSnapshots();
     if (!page.rows.length) {
       const row = node('tr');
       const cell = node('td', 'No matching languages. Adjust your search or clear the filters.');
@@ -285,6 +307,7 @@
   dialog.addEventListener('close', () => {
     detailRequests.delete(dialogContent);
     dialogContent.replaceChildren();
+    cleanSnapshots();
   });
   window.MappExplorer = {
     getState() {
