@@ -61,7 +61,7 @@
 .explorer-pagination button[aria-current="page"] { background: #237c83; color: white; border-color: #237c83; }
 .language-detail-row > td { padding: 20px; background: #f8fafc; }
 .language-detail-row h3, .language-detail-dialog h3 { margin: 0 0 12px; font-size: 1.15rem; line-height: 1.4; }
-.detail-stage > h4 { margin: 0 0 12px; font-size: 1rem; line-height: 1.4; }
+.detail-stage > h4 { margin: 0 0 12px; font-size: 1rem; line-height: 1.4; text-align: center; }
 .detail-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto auto auto; column-gap: 28px; }
 .detail-stage { display: grid; grid-template-rows: subgrid; grid-row: span 3; min-width: 0; }
 .cluster-summary { display: grid; grid-template-rows: auto 1fr; }

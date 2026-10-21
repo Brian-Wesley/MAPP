@@ -57,6 +57,7 @@
   function create({ document, records, stage, language, collectionLink, formatQuantity, ResizeObserver,
     kind = 'collection', categories = {} }) {
     const summary = kind === 'collection' ? aggregate(records) : categorySummary(categories, records, `${kind}s`);
+    const showUnavailable = kind === 'collection' && summary.unknown > 0;
     const label = kind[0].toUpperCase() + kind.slice(1);
     const unit = stage === 'pretrain' ? 'NCC' : 'sample equivalents';
     const node = (tag, text, className) => {
@@ -77,10 +78,10 @@
     unavailableDetails.hidden = true;
     const unavailableToggle = node('button', 'Unavailable quantities ▾', 'snapshot-toggle snapshot-unavailable-toggle');
     unavailableToggle.type = 'button';
-    unavailableToggle.hidden = !summary.unknown;
+    unavailableToggle.hidden = !showUnavailable;
     unavailableToggle.setAttribute('aria-controls', unavailableDetails.id);
     unavailableToggle.setAttribute('aria-expanded', 'false');
-    if (summary.unknown) {
+    if (showUnavailable) {
       unavailableDetails.append(node('p', `These records have unavailable quantities and are excluded from the pie and percentages. ${label}s with partial quantities can also appear above.`, 'snapshot-note'));
       const list = node('ul', undefined, 'snapshot-list');
       for (const row of summary.unavailable) {
@@ -97,7 +98,7 @@
     });
     if (!summary.total) {
       element.append(node('p', `No positive quantity is available to calculate ${kind} shares.`, 'snapshot-note'));
-      if (summary.unknown) element.append(unavailableToggle, unavailableDetails);
+      if (showUnavailable) element.append(unavailableToggle, unavailableDetails);
       return { element, mount: () => () => {} };
     }
     const layout = node('div', undefined, 'snapshot-layout');
@@ -112,8 +113,10 @@
     toggle.setAttribute('aria-controls', more.id);
     toggle.setAttribute('aria-expanded', 'false');
     const actions = node('div', undefined, 'snapshot-actions');
-    actions.append(toggle, unavailableToggle);
-    side.append(top, actions); layout.append(chart, side); element.append(layout, more, unavailableDetails);
+    actions.append(toggle);
+    if (showUnavailable) actions.append(unavailableToggle);
+    side.append(top, actions); layout.append(chart, side); element.append(layout, more);
+    if (showUnavailable) element.append(unavailableDetails);
     let expanded = false, lastSize = 0;
     const description = row => `${row.name}: ${percent(row.share)} · ${formatQuantity(row.quantity)} ${unit}${summary.unknown ? ' (known quantities only)' : ''}`;
     function legendRow(row, color) {
@@ -130,7 +133,7 @@
       return item;
     }
     function draw() {
-      const n = visibleCount(summary.rows.length, summary.unknown > 0);
+      const n = visibleCount(summary.rows.length, showUnavailable);
       const leading = summary.rows.slice(0, n), trailing = summary.rows.slice(n);
       const otherQuantity = trailing.reduce((sum, row) => sum + row.quantity, 0);
       const otherShare = trailing.reduce((sum, row) => sum + row.share, 0);
