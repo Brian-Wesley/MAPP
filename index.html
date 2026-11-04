@@ -11,13 +11,52 @@
         margin: 0;
         min-height: 100vh;
         min-height: 100svh;
-        padding: 48px 24px;
         background: #f8fafc;
         color: #172a3a;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         text-align: center;
       }
-      main { width: 100%; max-width: 1100px; margin: 0 auto; }
+      .site-header { background: #fff; border-bottom: 1px solid #dce5eb; }
+      .site-nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        column-gap: 16px;
+        width: calc(100% - 48px);
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .site-brand {
+        display: inline-flex;
+        align-items: baseline;
+        padding: 7px 2px;
+        color: #172a3a;
+        font-size: 1.55rem;
+        font-weight: 750;
+        letter-spacing: -0.055em;
+        line-height: 1.25;
+        text-decoration: none;
+      }
+      .site-brand-pair { margin-left: 0.06em; color: #237c83; font: italic 700 1.2em/1 Georgia, serif; }
+      .site-brand-pair span { display: inline-block; margin-left: -0.12em; color: #1b6268; transform: translateY(0.09em); }
+      .site-tabs { display: flex; gap: clamp(4px, 2vw, 24px); margin-left: auto; }
+      .site-tab {
+        display: inline-flex;
+        align-items: center;
+        min-height: 58px;
+        padding: 0 7px;
+        border-bottom: 3px solid transparent;
+        color: #334b5c;
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-decoration: none;
+        scroll-margin-top: 48px;
+      }
+      .site-tab:hover { color: #1b6268; background: #f3f8f8; }
+      .site-tab:target, .site-tab[aria-current="page"] { color: #1b6268; border-bottom-color: #237c83; }
+      main { width: calc(100% - 48px); max-width: 1100px; margin: 0 auto; padding: 48px 0; }
+      .site-hero { margin-bottom: 24px; }
       h1 {
         margin: 0;
         font-size: clamp(3.5rem, 12vw, 6rem);
@@ -26,7 +65,7 @@
         line-height: 1.1;
       }
       .title {
-        margin: 0 0 20px;
+        margin: 8px 0 0;
         font-size: min(1.75rem, 2.6vw);
         font-weight: 400;
         line-height: 1.5;
@@ -49,7 +88,15 @@
         outline: 3px solid #172a3a;
         outline-offset: 4px;
       }
-      .figures { margin-top: 16px; text-align: left; }
+      .site-view { text-align: left; }
+      @supports selector(body:has(:target)) {
+        .site-view:not(.site-view-atlas) { display: none; }
+        body:has(:is(#cluster, #regime, #analysis):target) .site-view-atlas { display: none; }
+        body:has(#cluster:target) .site-view-cluster,
+        body:has(#regime:target) .site-view-regime,
+        body:has(#analysis:target) .site-view-analysis { display: block; }
+        body:not(:has(.site-tab:target)) #atlas { color: #1b6268; border-bottom-color: #237c83; }
+      }
       .figure-card {
         margin: 0 0 32px;
         padding: 28px;
@@ -172,8 +219,10 @@
         .group-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
       @media (max-width: 600px) {
-        body { padding: 32px 16px; }
-        .figures { margin-top: 16px; }
+        .site-nav, main { width: calc(100% - 32px); }
+        main { padding: 32px 0; }
+        .site-brand { font-size: 1.3rem; }
+        .site-tab { min-height: 46px; padding: 0 5px; font-size: 0.85rem; }
         .figure-card { padding: 20px 16px; border-radius: 12px; }
         .table-hint { display: block; margin: 0 0 12px; color: #526271; font-size: 0.85rem; }
         .group-grid { grid-template-columns: 1fr; }
@@ -183,11 +232,24 @@
     <link rel="stylesheet" href="assets/language-explorer.css?v=f5f2d535c810">
   </head>
   <body>
+    <header class="site-header">
+      <nav class="site-nav" aria-label="MAPP sections">
+        <a class="site-brand" href="#atlas" aria-label="MAPP home">MA<span class="site-brand-pair">P<span>P</span></span></a>
+        <div class="site-tabs">
+          <a class="site-tab" id="atlas" href="#atlas" aria-controls="view-atlas">Atlas</a>
+          <a class="site-tab" id="cluster" href="#cluster" aria-controls="view-cluster">Cluster</a>
+          <a class="site-tab" id="regime" href="#regime" aria-controls="view-regime">Regime</a>
+          <a class="site-tab" id="analysis" href="#analysis" aria-controls="view-analysis">Analysis</a>
+        </div>
+      </nav>
+    </header>
     <main>
-      <p class="title">A Multilingual Atlas of Pretraining and Post-training Data</p>
-      <h1>MAPP</h1>
-      <a class="code-button" href="https://anonymous.4open.science/r/low_resource_languages_data_review-CE42/" target="_blank" rel="noopener noreferrer">Code</a>
-      <section class="figures" aria-label="Research figures and tables">
+      <header class="site-hero">
+        <h1>MAPP</h1>
+        <p class="title">A Multilingual Atlas of Pretraining and Post-training Data</p>
+        <a class="code-button" href="https://anonymous.4open.science/r/low_resource_languages_data_review-CE42/" target="_blank" rel="noopener noreferrer">Code</a>
+      </header>
+      <section class="site-view site-view-atlas" id="view-atlas" aria-labelledby="atlas">
         <figure class="figure-card" id="resource-profiles-figure" data-version="d12bb900d0c8a46a" aria-labelledby="profiles-title" data-static-version="c85d32fe0b5e">
           <div id="resource-profile-chart" class="profile-chart" hidden>
             <p class="profile-help" id="profile-chart-help">Select a card or legend to filter; select a point for language details.<span class="visually-hidden"> Use arrow keys to browse points and Enter to open details.</span></p>
@@ -275,20 +337,45 @@
           </figcaption>
         </figure>
 
-        <figure class="figure-card" aria-label="Paper figure and discussion">
-          <details id="profile-paper-figure" class="profile-paper-figure" open>
-            <summary>Paper figure — click the preview to open the PDF</summary>
-          <a class="figure-preview-link" href="assets/language_resource_profiles.pdf?v=8860d28a44ed" target="_blank" rel="noopener noreferrer" aria-label="Open language resource profiles as PDF (new tab)" title="Open PDF in a new tab">
-            <img class="figure-preview" id="resource-profiles-image" src="assets/language_resource_profiles.png?v=8e6dfe423714" width="3390" height="1680" alt="Pre-training and post-training quantities for 2,172 living languages, colored by five development priorities, with a separate band for languages without observed usable post-training data." aria-describedby="profiles-reading-notes" loading="lazy">
-          </a>
-          </details>
-          <figcaption>
-            <p class="figure-description">Matching the stage-specific clusters reveals that a pre-training foundation does not guarantee task-oriented supervision. Among the <span id="profile-stat-plotted">2,172</span> plotted languages, <span id="profile-stat-bootstrap">1,433</span> have intermediate or large pre-training resources but no observed usable post-training quantity, and <span id="profile-stat-scale">274</span> have only small post-training resources despite stronger pre-training foundations. These gaps motivate five development regimes: <strong>Expand Pre-training</strong> through quality-controlled corpus collection; <strong>Bootstrap Post-training</strong> by building initial instruction and task datasets; <strong>Scale Up Post-training</strong> beyond small, predominantly synthetic translation slices; <strong>Diversify Post-training</strong> with independently sourced supervision across tasks; and <strong>Refine Both Stages</strong> through provenance auditing, balanced task coverage, and targeted gap filling. The <span id="profile-stat-diversify">142</span> languages in the diversification regime illustrate why substantial example counts from reused translations still leave limited supervision breadth. Together, the regimes guide resource development toward each language's specific bottleneck, with continued human contributions alongside synthetic expansion.</p>
-            <p class="table-notes" id="profiles-reading-notes">Each point represents one ISO 639-3 language; coincident points may overlap. Both numeric axes use base-10 logarithms. Languages without usable post-training quantities appear in a separate strip whose vertical position does not represent quantity. The <span id="profile-stat-omitted">4,912</span> languages without usable pre-training quantities remain available in the Language Explorer. In the paper figure, highlighted NCC intervals are expanded in log space for visibility (2× for Abkhazian, Zulu and English; 5× for Navajo; 10× for other highlighted languages); their displayed widths are not the true 95% confidence intervals. Details in the Explorer show the original bounds.</p>
-            <p class="table-notes" id="profile-version-notice" role="status" hidden>This figure reflects a different data snapshot. The Language Explorer shows the current data.</p>
-          </figcaption>
-        </figure>
+        <section class="figure-card explorer dataset-catalog" id="dataset-catalog" aria-labelledby="dataset-catalog-title" data-version="3a443a7a3c5a8be7">
+          <h2 id="dataset-catalog-title" tabindex="-1">Dataset Catalog</h2>
+          <p class="figure-description">Explore the surveyed resources by collection. Language-specific subsets are grouped into a single dataset entry.</p>
+          <div class="browse-tabs" role="tablist" aria-label="Dataset training stage">
+            <button type="button" class="browse-tab" id="catalog-pretrain" role="tab" aria-selected="true" aria-controls="catalog-panel">Pre-train</button>
+            <button type="button" class="browse-tab" id="catalog-posttrain" role="tab" aria-selected="false" aria-controls="catalog-panel" tabindex="-1">Post-train</button>
+          </div>
+          <div id="catalog-panel" role="tabpanel" aria-labelledby="catalog-pretrain">
+            <div class="explorer-selection catalog-selection">
+              <p id="catalog-selected">All datasets</p>
+              <div class="explorer-selection-actions">
+                <p id="catalog-count" aria-live="polite">Showing matching datasets: —</p>
+                <button type="button" id="catalog-clear" disabled>Clear filter</button>
+              </div>
+            </div>
+            <div class="catalog-toolbar">
+              <label class="catalog-search"><span class="visually-hidden">Search collections, tasks, or sources</span><input type="search" id="catalog-search" placeholder="Search collections, tasks, or sources…" autocomplete="off" disabled></label>
+              <label for="catalog-sort">Sort by:</label>
+              <select id="catalog-sort" disabled><option value="name">Name: A–Z</option><option value="quantity">Data quantity: highest first</option><option value="language_count">Languages: most first</option><option value="date">Release date: newest first</option></select>
+            </div>
+            <p class="table-notes" id="catalog-scope">All collections in the original metadata are included. Data quantities sum each constituent dataset once; language coverage counts distinct recorded labels, including programming languages. Release dates use explicit dates where available, otherwise recorded repository or publication dates, with paper years or preprint months as a final fallback. The basis and available precision are shown below each date. “—” means unavailable; “Partial” marks incomplete quantities or language coverage.</p>
+            <p id="catalog-message" role="status">Loading dataset catalog…</p>
+            <div class="table-scroll" role="region" aria-label="Dataset catalog, horizontally scrollable" tabindex="0">
+              <table class="catalog-table" aria-describedby="catalog-scope">
+                <thead><tr><th scope="col">Name</th><th scope="col">Release date</th><th scope="col" id="catalog-quantity-heading">Quantity <span class="catalog-heading-line">(NCC)</span></th><th scope="col"># Languages</th><th scope="col">Tasks</th><th scope="col">Text sources</th><th scope="col">Source</th><th scope="col">Paper</th></tr></thead>
+                <tbody id="catalog-rows"><tr><td colspan="8">Loading collections…</td></tr></tbody>
+              </table>
+            </div>
+            <div class="explorer-pagination">
+              <label>Rows per page: <select id="catalog-page-size" disabled><option value="25">25</option><option value="50">50</option><option value="100">100</option></select></label>
+              <p id="catalog-range" aria-live="polite">Showing 0–0 of 0 collections</p>
+              <nav class="catalog-pages" aria-label="Dataset catalog pages"><button type="button" id="catalog-prev" disabled aria-label="Previous catalog page">‹</button><span id="catalog-page">Page 1 of 1</span><button type="button" id="catalog-next" disabled aria-label="Next catalog page">›</button></nav>
+            </div>
+          </div>
+          <noscript><p>Enable JavaScript to browse the dataset catalog.</p></noscript>
+        </section>
+      </section>
 
+      <section class="site-view site-view-cluster" id="view-cluster" aria-labelledby="cluster">
         <figure class="figure-card" aria-labelledby="cluster-table-title">
           <h2 id="cluster-table-title">Coverage, Provenance, and Inequality Within Resource Clusters</h2>
           <p class="table-hint">Scroll horizontally to view all columns.</p>
@@ -358,6 +445,23 @@
           </figcaption>
         </figure>
 
+      </section>
+
+      <section class="site-view site-view-regime" id="view-regime" aria-labelledby="regime">
+        <figure class="figure-card" aria-label="Paper figure and discussion">
+          <details id="profile-paper-figure" class="profile-paper-figure" open>
+            <summary>Paper figure — click the preview to open the PDF</summary>
+            <a class="figure-preview-link" href="assets/language_resource_profiles.pdf?v=8860d28a44ed" target="_blank" rel="noopener noreferrer" aria-label="Open language resource profiles as PDF (new tab)" title="Open PDF in a new tab">
+              <img class="figure-preview" id="resource-profiles-image" src="assets/language_resource_profiles.png?v=8e6dfe423714" width="3390" height="1680" alt="Pre-training and post-training quantities for 2,172 living languages, colored by five development priorities, with a separate band for languages without observed usable post-training data." aria-describedby="profiles-reading-notes" loading="lazy">
+            </a>
+          </details>
+          <figcaption>
+            <p class="figure-description">Matching the stage-specific clusters reveals that a pre-training foundation does not guarantee task-oriented supervision. Among the <span id="profile-stat-plotted">2,172</span> plotted languages, <span id="profile-stat-bootstrap">1,433</span> have intermediate or large pre-training resources but no observed usable post-training quantity, and <span id="profile-stat-scale">274</span> have only small post-training resources despite stronger pre-training foundations. These gaps motivate five development regimes: <strong>Expand Pre-training</strong> through quality-controlled corpus collection; <strong>Bootstrap Post-training</strong> by building initial instruction and task datasets; <strong>Scale Up Post-training</strong> beyond small, predominantly synthetic translation slices; <strong>Diversify Post-training</strong> with independently sourced supervision across tasks; and <strong>Refine Both Stages</strong> through provenance auditing, balanced task coverage, and targeted gap filling. The <span id="profile-stat-diversify">142</span> languages in the diversification regime illustrate why substantial example counts from reused translations still leave limited supervision breadth. Together, the regimes guide resource development toward each language's specific bottleneck, with continued human contributions alongside synthetic expansion.</p>
+            <p class="table-notes" id="profiles-reading-notes">Each point represents one ISO 639-3 language; coincident points may overlap. Both numeric axes use base-10 logarithms. Languages without usable post-training quantities appear in a separate strip whose vertical position does not represent quantity. The <span id="profile-stat-omitted">4,912</span> languages without usable pre-training quantities remain available in the Language Explorer. In the paper figure, highlighted NCC intervals are expanded in log space for visibility (2× for Abkhazian, Zulu and English; 5× for Navajo; 10× for other highlighted languages); their displayed widths are not the true 95% confidence intervals. Details in the Explorer show the original bounds.</p>
+            <p class="table-notes" id="profile-version-notice" role="status" hidden>This figure reflects a different data snapshot. The Language Explorer shows the current data.</p>
+          </figcaption>
+        </figure>
+
         <figure class="figure-card" aria-labelledby="cross-stage-table-title">
           <h2 id="cross-stage-table-title">How Languages Map Between Training Stages</h2>
           <p class="table-hint">Scroll horizontally to view all columns.</p>
@@ -387,10 +491,13 @@
               <span class="regime-tag diversify">Diversify Post-training</span>
               <span class="regime-tag refine">Refine Both Stages</span>
             </div>
-            <p class="figure-description">Linking the stage-specific profiles exposes gaps that separate coverage statistics cannot show. Of the 7,084 living languages in the reference inventory, 4,912 have no usable observed quantity at either stage. Among the 2,172 with pre-training resources, 1,433 have intermediate or large pre-training foundations but no usable post-training quantity, and another 274 have only small post-training resources. Even within the 502 languages in the largest pre-training cluster, post-training support ranges from absent to comparatively extensive. These intersections motivate different interventions: establishing pre-training foundations, creating initial supervision, expanding limited supervision, diversifying reused translation resources, or refining both stages. The next figure places the five regimes in the language-level resource landscape.</p>
+            <p class="figure-description">Linking the stage-specific profiles exposes gaps that separate coverage statistics cannot show. Of the 7,084 living languages in the reference inventory, 4,912 have no usable observed quantity at either stage. Among the 2,172 with pre-training resources, 1,433 have intermediate or large pre-training foundations but no usable post-training quantity, and another 274 have only small post-training resources. Even within the 502 languages in the largest pre-training cluster, post-training support ranges from absent to comparatively extensive. These intersections motivate different interventions: establishing pre-training foundations, creating initial supervision, expanding limited supervision, diversifying reused translation resources, or refining both stages. The paper figure above places the five regimes in the language-level resource landscape.</p>
           </figcaption>
         </figure>
 
+      </section>
+
+      <section class="site-view site-view-analysis" id="view-analysis" aria-labelledby="analysis">
         <figure class="figure-card" aria-labelledby="gaps-title">
           <h2 id="gaps-title">Linguistic Diversity Remains Unevenly Represented</h2>
           <a class="figure-preview-link" href="assets/cross_stage_resource_gaps.pdf?v=747fe137abf5" target="_blank" rel="noopener noreferrer" aria-label="Open linguistic diversity representation as PDF (new tab)" title="Open PDF in a new tab">
@@ -401,42 +508,6 @@
           </figcaption>
         </figure>
       </section>
-      <section class="figure-card explorer dataset-catalog" id="dataset-catalog" aria-labelledby="dataset-catalog-title" data-version="3a443a7a3c5a8be7">
-        <h2 id="dataset-catalog-title" tabindex="-1">Dataset Catalog</h2>
-        <p class="figure-description">Explore the surveyed resources by collection. Language-specific subsets are grouped into a single dataset entry.</p>
-        <div class="browse-tabs" role="tablist" aria-label="Dataset training stage">
-          <button type="button" class="browse-tab" id="catalog-pretrain" role="tab" aria-selected="true" aria-controls="catalog-panel">Pre-train</button>
-          <button type="button" class="browse-tab" id="catalog-posttrain" role="tab" aria-selected="false" aria-controls="catalog-panel" tabindex="-1">Post-train</button>
-        </div>
-        <div id="catalog-panel" role="tabpanel" aria-labelledby="catalog-pretrain">
-          <div class="explorer-selection catalog-selection">
-            <p id="catalog-selected">All datasets</p>
-            <div class="explorer-selection-actions">
-              <p id="catalog-count" aria-live="polite">Showing matching datasets: —</p>
-              <button type="button" id="catalog-clear" disabled>Clear filter</button>
-            </div>
-          </div>
-          <div class="catalog-toolbar">
-            <label class="catalog-search"><span class="visually-hidden">Search collections, tasks, or sources</span><input type="search" id="catalog-search" placeholder="Search collections, tasks, or sources…" autocomplete="off" disabled></label>
-            <label for="catalog-sort">Sort by:</label>
-            <select id="catalog-sort" disabled><option value="name">Name: A–Z</option><option value="quantity">Data quantity: highest first</option><option value="language_count">Languages: most first</option><option value="date">Release date: newest first</option></select>
-          </div>
-          <p class="table-notes" id="catalog-scope">All collections in the original metadata are included. Data quantities sum each constituent dataset once; language coverage counts distinct recorded labels, including programming languages. Release dates use explicit dates where available, otherwise recorded repository or publication dates, with paper years or preprint months as a final fallback. The basis and available precision are shown below each date. “—” means unavailable; “Partial” marks incomplete quantities or language coverage.</p>
-          <p id="catalog-message" role="status">Loading dataset catalog…</p>
-          <div class="table-scroll" role="region" aria-label="Dataset catalog, horizontally scrollable" tabindex="0">
-            <table class="catalog-table" aria-describedby="catalog-scope">
-              <thead><tr><th scope="col">Name</th><th scope="col">Release date</th><th scope="col" id="catalog-quantity-heading">Quantity <span class="catalog-heading-line">(NCC)</span></th><th scope="col"># Languages</th><th scope="col">Tasks</th><th scope="col">Text sources</th><th scope="col">Source</th><th scope="col">Paper</th></tr></thead>
-              <tbody id="catalog-rows"><tr><td colspan="8">Loading collections…</td></tr></tbody>
-            </table>
-          </div>
-          <div class="explorer-pagination">
-            <label>Rows per page: <select id="catalog-page-size" disabled><option value="25">25</option><option value="50">50</option><option value="100">100</option></select></label>
-            <p id="catalog-range" aria-live="polite">Showing 0–0 of 0 collections</p>
-            <nav class="catalog-pages" aria-label="Dataset catalog pages"><button type="button" id="catalog-prev" disabled aria-label="Previous catalog page">‹</button><span id="catalog-page">Page 1 of 1</span><button type="button" id="catalog-next" disabled aria-label="Next catalog page">›</button></nav>
-          </div>
-        </div>
-        <noscript><p>Enable JavaScript to browse the dataset catalog.</p></noscript>
-      </section>
     </main>
     <dialog id="language-detail-dialog" class="language-detail-dialog" aria-labelledby="language-detail-title">
       <div class="language-detail-header">
@@ -445,11 +516,12 @@
       </div>
       <div id="language-detail-content" aria-live="polite"></div>
     </dialog>
+    <script src="assets/site-navigation.js?v=c0c609f9ef93" defer></script>
     <script src="assets/language-data.js?v=546cca3caa3c" defer></script>
     <script src="assets/collection-snapshot.js?v=a34b96957348" defer></script>
     <script src="assets/language-explorer.js?v=1f2f75e0cbfb" defer></script>
     <script src="assets/language-browser.js?v=a31bee575ca1" defer></script>
-    <script src="assets/resource-profile-chart.js?v=0970015547b4" defer></script>
+    <script src="assets/resource-profile-chart.js?v=976492299547" defer></script>
     <script id="dataset-catalog-data" src="assets/static-data/dataset-catalog.js?v=225199c7dfa1" defer></script>
     <script src="assets/dataset-catalog.js?v=314f9e0863be" defer></script>
   </body>

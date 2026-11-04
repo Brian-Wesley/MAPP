@@ -75,13 +75,14 @@ test('cards, search, pagination, clear, details, and CSV share one explorer', as
   require('../assets/dataset-catalog.js').init(window, document);
   const descendants = element => [element, ...element.children.flatMap(child => typeof child === 'string' ? [] : descendants(child))];
   document.createElementNS = (_namespace, tag) => new Element(tag);
+  elements.get('profile-paper-figure').open = true;
   require('../assets/resource-profile-chart.js').initialize({ ...window, document, fetch: async () => ({ ok: true, json: async () => JSON.parse(read('assets/resource-profile-points.json')) }) });
   await tick();
   const chart = elements.get('profile-chart-svg');
   const dots = chart.children.filter(item => item.tag === 'circle');
   const legendButtons = elements.get('profile-chart-legend').children;
   assert.equal(elements.get('resource-profile-chart').hidden, false);
-  assert.equal(elements.get('profile-paper-figure').open, false);
+  assert.equal(elements.get('profile-paper-figure').open, true);
   assert.equal(dots.length, JSON.parse(read('assets/resource-profile-points.json')).points.length);
   assert.equal(find('count').textContent, `Showing matching languages: ${catalog.languages.length.toLocaleString('en-US')}`);
   assert.equal(find('rows').children.length, 25);

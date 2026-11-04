@@ -55,7 +55,6 @@
     const status = document.getElementById('profile-chart-status');
     const picker = document.getElementById('profile-point-picker');
     const errorBox = document.getElementById('profile-chart-error');
-    const paper = document.getElementById('profile-paper-figure');
     let layout, catalog, selectedCodes = new Set(), currentFilters = {}, focusCode;
     const circles = new Map(), legendButtons = new Map();
     const element = (tag, text, className) => {
@@ -187,15 +186,15 @@
         draw();
         update(window.MappExplorer.getState());
         host.hidden = false;
-        paper.open = false;
       } catch (error) {
         host.hidden = true;
-        paper.open = true;
         errorBox.hidden = false;
         const retry = element('button', 'Retry interactive plot');
         retry.type = 'button';
         retry.addEventListener('click', load);
-        errorBox.replaceChildren('The interactive plot is unavailable. The paper preview and language table remain available. ', retry);
+        const paperLink = element('a', 'paper figure in Regime');
+        paperLink.href = '#regime';
+        errorBox.replaceChildren('The interactive plot is unavailable. The language table and the ', paperLink, ' remain available. ', retry);
         console.error('Resource plot failed', error);
       }
     }
