@@ -63,7 +63,19 @@
 .language-detail-row h3, .language-detail-dialog h3 { margin: 0 0 12px; font-size: 1.15rem; line-height: 1.4; }
 .detail-stage > h4 { margin: 0 0 12px; font-size: 1rem; line-height: 1.4; text-align: center; }
 .detail-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto auto auto; column-gap: 28px; }
-.detail-stage { display: grid; grid-template-rows: subgrid; grid-row: span 3; min-width: 0; }
+.detail-stage {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 3;
+  min-width: 0;
+  padding: 16px 12px;
+  border: 1px solid var(--stage-border, #dce5eb);
+  background: var(--stage-background, #fff);
+}
+/* Light tints of the Okabe–Ito sky blue and bluish green. */
+.detail-stage[data-stage="pretrain"] { --stage-background: #e4f3fb; --stage-border: #b9dbea; }
+.detail-stage[data-stage="posttrain"] { --stage-background: #e0f3ee; --stage-border: #b4dbce; }
+.detail-stage .collection-catalog-link { color: #1b6268; }
 .cluster-summary { display: grid; grid-template-rows: auto 1fr; }
 .cluster-summary > h5 { margin: 0 0 10px; }
 .cluster-summary > dl { align-content: start; }
@@ -192,4 +204,5 @@
   #explorer-family { width: 100%; max-width: none; }
   .explorer-selection { align-items: flex-start; }
   .detail-columns { grid-template-columns: 1fr; }
+  .detail-stage + .detail-stage { margin-top: 16px; }
 }

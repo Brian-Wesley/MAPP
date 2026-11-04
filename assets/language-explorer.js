@@ -98,6 +98,7 @@
   function stageDetails(stage, detail, snapshots) {
     const values = detail[stage];
     const section = node('section', undefined, 'detail-stage');
+    section.dataset.stage = stage;
     section.append(node('h4', stage === 'pretrain' ? 'Pre-training' : 'Post-training'));
     const summary = node('section', undefined, 'cluster-summary');
     summary.append(node('h5', 'Cluster Summary'));

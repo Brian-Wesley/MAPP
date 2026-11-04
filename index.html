@@ -109,6 +109,10 @@
         font-size: clamp(1.25rem, 3vw, 1.6rem);
         line-height: 1.35;
       }
+      .atlas-guide { margin-top: 24px; }
+      .atlas-guide-list { margin: 0; padding-inline-start: 1.25rem; color: #526271; line-height: 1.6; }
+      .atlas-guide-list li + li { margin-top: 8px; }
+      .atlas-guide-list strong { color: #172a3a; }
       .figure-description {
         max-width: 900px;
         margin: 24px 0 0;
@@ -229,7 +233,7 @@
         .browse-tab { flex: 1 1 100%; text-align: left; }
       }
     </style>
-    <link rel="stylesheet" href="assets/language-explorer.css?v=f5f2d535c810">
+    <link rel="stylesheet" href="assets/language-explorer.css?v=26aa94d21b02">
   </head>
   <body>
     <header class="site-header">
@@ -372,6 +376,17 @@
             </div>
           </div>
           <noscript><p>Enable JavaScript to browse the dataset catalog.</p></noscript>
+        </section>
+
+        <section class="figure-card atlas-guide" aria-labelledby="atlas-guide-title">
+          <h2 id="atlas-guide-title">How to Use the Atlas</h2>
+          <ul class="atlas-guide-list">
+            <li><strong>Filter by group:</strong> Select a group card or a plot legend entry.</li>
+            <li><strong>Find a language:</strong> Search by name or ISO code, then narrow the results with filters.</li>
+            <li><strong>Compare training stages:</strong> Click a plot point or select <strong>Details</strong> in the language table.</li>
+            <li><strong>Browse datasets:</strong> Switch stages in the Dataset Catalog, or click a collection in a language’s details to find it there.</li>
+            <li><strong>Export results:</strong> Select <strong>Download filtered CSV</strong> to save the matching language rows.</li>
+          </ul>
         </section>
       </section>
 
@@ -519,7 +534,7 @@
     <script src="assets/site-navigation.js?v=c0c609f9ef93" defer></script>
     <script src="assets/language-data.js?v=546cca3caa3c" defer></script>
     <script src="assets/collection-snapshot.js?v=a34b96957348" defer></script>
-    <script src="assets/language-explorer.js?v=1f2f75e0cbfb" defer></script>
+    <script src="assets/language-explorer.js?v=638102321c57" defer></script>
     <script src="assets/language-browser.js?v=a31bee575ca1" defer></script>
     <script src="assets/resource-profile-chart.js?v=976492299547" defer></script>
     <script id="dataset-catalog-data" src="assets/static-data/dataset-catalog.js?v=225199c7dfa1" defer></script>
