@@ -209,6 +209,26 @@
 .catalog-table a { color: #237c83; text-underline-offset: 3px; }
 .catalog-partial { display: block; color: #526271; font-size: 0.75rem; }
 .catalog-pages { display: flex; align-items: center; gap: 10px; }
+@media (min-width: 1440px) and (orientation: landscape) {
+  .detail-columns { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; gap: 20px; }
+  .detail-stage {
+    grid-row: auto;
+    grid-template-columns: minmax(0, 0.8fr) repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto;
+    gap: 16px;
+    align-items: start;
+  }
+  .detail-stage > h4 { grid-column: 1 / -1; margin: 0; }
+  .detail-stage > .cluster-summary { grid-area: 2 / 1; }
+  .detail-stage-content { display: contents; }
+  .detail-stage-content > .collection-snapshot { min-width: 0; margin: 0; }
+  .detail-stage-content > [data-snapshot-kind="source"] { grid-area: 2 / 2; }
+  .detail-stage-content > [data-snapshot-kind="task"] { grid-area: 2 / 3; }
+  .detail-stage-content > [data-snapshot-kind="collection"] { grid-area: 2 / 4; }
+  .detail-stage-content > details { grid-area: 3 / 1 / auto / -1; min-width: 0; }
+  .detail-stage-content .snapshot-header { flex-wrap: wrap; gap: 4px 10px; }
+  .detail-stage-content .snapshot-header .snapshot-note { flex: 1 1 7rem; overflow-wrap: anywhere; }
+}
 @media (max-width: 760px) {
   .explorer-selection, .explorer-sort { grid-template-columns: minmax(0, 1fr); }
   #explorer-download { justify-self: start; }
