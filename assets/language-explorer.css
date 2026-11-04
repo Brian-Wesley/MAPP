@@ -169,7 +169,7 @@
 .profile-point-picker-header button { flex-shrink: 0; white-space: nowrap; }
 .profile-point-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px; max-height: 230px; overflow-y: auto; margin-top: 12px; }
 .profile-point-options button { text-align: left; }
-.language-detail-dialog { width: min(960px, calc(100% - 32px)); max-height: 85vh; padding: 24px; border: 1px solid #c5d4dd; border-radius: 12px; color: #172a3a; text-align: left; overflow: auto; }
+.language-detail-dialog { width: min(var(--detail-dialog-max-width, 960px), calc(100% - 32px)); max-height: 85vh; padding: 24px; border: 1px solid #c5d4dd; border-radius: 12px; color: #172a3a; text-align: left; overflow: auto; }
 .language-detail-dialog::backdrop { background: #172a3a80; }
 .language-detail-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .language-detail-header h2 { margin: 0; font-size: 1.2rem; }

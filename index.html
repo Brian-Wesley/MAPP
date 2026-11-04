@@ -223,6 +223,9 @@
       }
       .unavailable-group { margin-top: 20px; padding-top: 20px; border-top: 1px dashed #c5d4dd; }
       .unavailable-group .group-description { min-height: 1.6em; }
+      @media (min-width: 1440px) and (orientation: landscape) {
+        :root { --page-max-width: 1680px; --detail-dialog-max-width: 1280px; }
+      }
       @media (max-width: 900px) {
         .group-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
@@ -249,7 +252,7 @@
         .browse-tab { flex: 0 1 auto; padding: 8px 10px; text-align: center; }
       }
     </style>
-    <link rel="stylesheet" href="assets/language-explorer.css?v=ae996713ecb5">
+    <link rel="stylesheet" href="assets/language-explorer.css?v=54dda73cc696">
   </head>
   <body>
     <header class="site-header">
