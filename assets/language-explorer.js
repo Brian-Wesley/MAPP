@@ -197,7 +197,7 @@
       expandedRow = node('tr', undefined, 'language-detail-row');
       const cell = node('td');
       cell.colSpan = 6;
-      const content = node('div');
+      const content = node('div', undefined, 'language-detail-content');
       content.id = `language-details-${language.code}`;
       content.setAttribute('aria-live', 'polite');
       cell.append(content);

@@ -7,6 +7,7 @@
     <title>MAPP — A Multilingual Atlas of Pretraining and Post-training Data</title>
     <style>
       * { box-sizing: border-box; }
+      :root { --page-max-width: 1440px; --page-gutter: 24px; }
       body {
         margin: 0;
         min-height: 100vh;
@@ -17,15 +18,17 @@
         text-align: center;
       }
       .site-header { background: #fff; border-bottom: 1px solid #dce5eb; }
+      .site-nav, main {
+        width: calc(100% - 2 * var(--page-gutter));
+        max-width: var(--page-max-width);
+        margin-inline: auto;
+      }
       .site-nav {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
         column-gap: 16px;
-        width: calc(100% - 48px);
-        max-width: 1100px;
-        margin: 0 auto;
       }
       .site-brand {
         display: inline-flex;
@@ -55,7 +58,7 @@
       }
       .site-tab:hover { color: #1b6268; background: #f3f8f8; }
       .site-tab:target, .site-tab[aria-current="page"] { color: #1b6268; border-bottom-color: #237c83; }
-      main { width: calc(100% - 48px); max-width: 1100px; margin: 0 auto; padding: 48px 0; }
+      main { padding: 48px 0; }
       .site-hero { margin-bottom: 24px; }
       h1 {
         margin: 0;
@@ -127,6 +130,7 @@
       .table-scroll {
         max-width: 100%;
         overflow-x: auto;
+        overscroll-behavior-inline: contain;
         border: 1px solid #dce5eb;
         border-radius: 10px;
       }
@@ -223,7 +227,7 @@
         .group-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
       @media (max-width: 600px) {
-        .site-nav, main { width: calc(100% - 32px); }
+        :root { --page-gutter: 16px; }
         main { padding: 32px 0; }
         .site-brand { font-size: 1.3rem; }
         .site-tab { min-height: 46px; padding: 0 5px; font-size: 0.85rem; }
@@ -232,8 +236,20 @@
         .group-grid { grid-template-columns: 1fr; }
         .browse-tab { flex: 1 1 100%; text-align: left; }
       }
+      @media (orientation: landscape) and (max-height: 540px) {
+        :root { --page-gutter: 16px; }
+        .site-tab { min-height: 44px; }
+        main { padding-block: 16px 24px; }
+        .site-hero { margin-bottom: 16px; }
+        .site-hero h1 { font-size: clamp(2.25rem, 10svh, 3.5rem); }
+        .site-hero .title { margin-top: 4px; font-size: min(1.1rem, 2.6vw); }
+        .code-button { margin-top: 10px; padding: 6px 18px; }
+        .figure-card { padding-inline: 16px; }
+        .browse-heading { flex-wrap: wrap; gap: 8px 12px; }
+        .browse-tab { flex: 0 1 auto; padding: 8px 10px; text-align: center; }
+      }
     </style>
-    <link rel="stylesheet" href="assets/language-explorer.css?v=26aa94d21b02">
+    <link rel="stylesheet" href="assets/language-explorer.css?v=cf42c1b07722">
   </head>
   <body>
     <header class="site-header">
@@ -325,7 +341,7 @@
                   <label>Post-training availability<select id="explorer-posttrain-status"><option value="">All statuses</option><option value="clustered">Usable quantity</option><option value="uncovered">Not covered</option><option value="quantity_unavailable">Quantity unavailable</option></select></label>
                 </div>
               </fieldset>
-              <div class="table-scroll" role="region" aria-label="Language search results, horizontally scrollable" tabindex="0">
+              <div class="table-scroll language-results-scroll" role="region" aria-label="Language search results, horizontally scrollable" tabindex="0">
                 <table class="explorer-table" aria-labelledby="explorer-title">
                   <colgroup><col class="col-language"><col class="col-code"><col class="col-stage"><col class="col-stage"><col class="col-family"><col class="col-details"></colgroup>
                   <thead><tr><th scope="col">Language</th><th scope="col">ISO 639-3</th><th scope="col">Pre-training</th><th scope="col">Post-training</th><th scope="col">Family</th><th scope="col">Details</th></tr></thead>
@@ -529,12 +545,12 @@
         <h2 id="language-detail-title">Language details</h2>
         <button id="language-detail-close" type="button" autofocus>Close</button>
       </div>
-      <div id="language-detail-content" aria-live="polite"></div>
+      <div class="language-detail-content" id="language-detail-content" aria-live="polite"></div>
     </dialog>
     <script src="assets/site-navigation.js?v=c0c609f9ef93" defer></script>
     <script src="assets/language-data.js?v=546cca3caa3c" defer></script>
     <script src="assets/collection-snapshot.js?v=a34b96957348" defer></script>
-    <script src="assets/language-explorer.js?v=638102321c57" defer></script>
+    <script src="assets/language-explorer.js?v=55b645797740" defer></script>
     <script src="assets/language-browser.js?v=a31bee575ca1" defer></script>
     <script src="assets/resource-profile-chart.js?v=976492299547" defer></script>
     <script id="dataset-catalog-data" src="assets/static-data/dataset-catalog.js?v=225199c7dfa1" defer></script>
